@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Player, SessionData } from '../types';
 import { FINE_AMOUNTS } from '../constants';
 import { formatCurrency } from '../utils';
-import { Check, User, ArrowLeft, Gavel, Award, AlertTriangle, CreditCard, RotateCcw, XCircle, Triangle, Square, Circle } from 'lucide-react';
+import { Check, User, ArrowLeft, Gavel, Award, CreditCard, RotateCcw, XCircle, Triangle, Square, Circle } from 'lucide-react';
 
 interface SessionWizardProps {
   allPlayers: Player[];
