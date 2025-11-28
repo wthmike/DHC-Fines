@@ -36,8 +36,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [editNameValue, setEditNameValue] = useState<string>('');
   const [newPlayerName, setNewPlayerName] = useState('');
 
-  // Delete Modal State
+  // Modals State
   const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
+  const [playerToPayOff, setPlayerToPayOff] = useState<Player | null>(null);
+  const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,7 +122,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       
-      {/* Delete Confirmation Modal */}
+      {/* Session Delete Modal */}
       {sessionToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4 animate-in zoom-in-95 duration-200">
@@ -146,6 +148,80 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         onClick={() => {
                             onDeleteSession(sessionToDelete);
                             setSessionToDelete(null);
+                        }}
+                        className="flex-1 px-4 py-3 rounded-xl bg-red-600 text-white font-bold hover:bg-red-500 shadow-lg shadow-red-900/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+      )}
+
+      {/* Pay Off Modal */}
+      {playerToPayOff && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4 animate-in zoom-in-95 duration-200">
+                <div className="flex items-center gap-3 text-emerald-400 mb-1">
+                    <div className="p-3 bg-emerald-500/10 rounded-full border border-emerald-500/20">
+                        <Banknote className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white">Confirm Payment</h3>
+                </div>
+                
+                <p className="text-slate-400 text-sm leading-relaxed">
+                    Reset <span className="text-white font-bold">{playerToPayOff.name}'s</span> debt of <span className="text-white font-bold">{formatCurrency(playerToPayOff.totalOwed)}</span> to £0.00?
+                </p>
+                
+                <div className="flex gap-3 pt-3">
+                    <button 
+                        onClick={() => setPlayerToPayOff(null)}
+                        className="flex-1 px-4 py-3 rounded-xl bg-slate-800 text-slate-300 font-medium hover:bg-slate-700 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        onClick={() => {
+                            onPayOffPlayer(playerToPayOff.id);
+                            setPlayerToPayOff(null);
+                        }}
+                        className="flex-1 px-4 py-3 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-500 shadow-lg shadow-emerald-900/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                    >
+                        <Banknote className="w-4 h-4" />
+                        Confirm Paid
+                    </button>
+                </div>
+            </div>
+        </div>
+      )}
+
+      {/* Delete Player Modal */}
+      {playerToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4 animate-in zoom-in-95 duration-200">
+                <div className="flex items-center gap-3 text-red-400 mb-1">
+                    <div className="p-3 bg-red-500/10 rounded-full border border-red-500/20">
+                        <Trash2 className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white">Remove Player?</h3>
+                </div>
+                
+                <p className="text-slate-400 text-sm leading-relaxed">
+                    Permanently delete <span className="text-white font-bold">{playerToDelete.name}</span> from the roster?
+                </p>
+                
+                <div className="flex gap-3 pt-3">
+                    <button 
+                        onClick={() => setPlayerToDelete(null)}
+                        className="flex-1 px-4 py-3 rounded-xl bg-slate-800 text-slate-300 font-medium hover:bg-slate-700 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        onClick={() => {
+                            onRemovePlayer(playerToDelete.id);
+                            setPlayerToDelete(null);
                         }}
                         className="flex-1 px-4 py-3 rounded-xl bg-red-600 text-white font-bold hover:bg-red-500 shadow-lg shadow-red-900/20 transition-all active:scale-95 flex items-center justify-center gap-2"
                     >
@@ -252,29 +328,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     <span className={`font-mono font-medium text-base sm:text-lg w-16 text-right ${player.totalOwed > 0 ? 'text-red-400' : 'text-slate-500'}`}>
                       {formatCurrency(player.totalOwed)}
                     </span>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 items-center">
                         {player.totalOwed > 0 && (
                             <button
-                                onClick={() => {
-                                    if(confirm(`Reset debt for ${player.name} to £0.00?`)) onPayOffPlayer(player.id);
-                                }}
-                                className="p-1.5 text-slate-500 hover:text-emerald-400 hover:bg-emerald-400/10 rounded-lg transition-colors"
+                                onClick={() => setPlayerToPayOff(player)}
+                                className="px-3 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-lg transition-all flex items-center gap-2 mr-2 group active:scale-95"
                                 title="Pay Off Debt"
                             >
-                                <Banknote className="w-4 h-4" />
+                                <Banknote className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                <span className="text-xs font-bold uppercase tracking-wide">Pay Off</span>
                             </button>
                         )}
                         <button
                         onClick={() => startEditing(player)}
-                        className="p-1.5 text-slate-500 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
+                        className="p-2 text-slate-500 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
                         >
                         <Edit2 className="w-4 h-4" />
                         </button>
                         <button
-                            onClick={() => {
-                                if(confirm(`Delete ${player.name}?`)) onRemovePlayer(player.id);
-                            }}
-                            className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                            onClick={() => setPlayerToDelete(player)}
+                            className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
                         >
                             <Trash2 className="w-4 h-4" />
                         </button>
