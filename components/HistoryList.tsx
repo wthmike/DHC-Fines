@@ -15,11 +15,13 @@ export const HistoryList: React.FC<HistoryListProps> = ({ history, onDelete }) =
     setExpandedId(expandedId === id ? null : id);
   };
 
-  const renderTags = (tags: string[]) => {
-      if (!tags || tags.length === 0) return null;
+  const renderBadges = (tags: string[], isPaidOff?: boolean) => {
+      const hasTags = tags && tags.length > 0;
+      if (!hasTags && !isPaidOff) return null;
+
       return (
           <div className="flex gap-1 flex-wrap mt-1">
-              {tags.map((tag, i) => {
+              {hasTags && tags.map((tag, i) => {
                   let badgeClass = "bg-slate-800 text-slate-400 border-slate-700";
                   let text = tag;
                   
@@ -36,6 +38,11 @@ export const HistoryList: React.FC<HistoryListProps> = ({ history, onDelete }) =
                       </span>
                   );
               })}
+              {isPaidOff && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+                      PAID OFF
+                  </span>
+              )}
           </div>
       );
   };
@@ -94,7 +101,7 @@ export const HistoryList: React.FC<HistoryListProps> = ({ history, onDelete }) =
                                         <li key={`${session.id}-${t.playerId}-${idx}`} className="flex justify-between items-start text-sm">
                                             <div className="flex flex-col">
                                                 <span className="text-slate-300 font-medium text-xs">{t.playerName}</span>
-                                                {renderTags(t.tags)}
+                                                {renderBadges(t.tags, t.isPaidOff)}
                                             </div>
                                             <span className="font-mono text-xs font-medium text-red-400">+{formatCurrency(t.amount)}</span>
                                         </li>

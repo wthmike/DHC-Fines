@@ -22,6 +22,7 @@ export interface SessionRecord {
     playerName: string;
     amount: number;
     tags: string[];
+    isPaidOff?: boolean;
   }[];
 }
 

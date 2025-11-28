@@ -405,6 +405,9 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
           const itemFine = !itemBrought ? 1.00 : 0;
           const isPaid = sessionData[id]?.isPaidOff || false;
           const projectedTotal = calculateTotalForPlayer(id);
+          
+          const hasMotm = sessionData[id]?.tags?.includes('MOTM');
+          const hasDotd = sessionData[id]?.tags?.includes('DOTD');
 
           return (
             <div key={id} className={`bg-slate-900 rounded-2xl shadow-lg border overflow-hidden transition-all duration-300 ${isPaid ? 'border-emerald-500/50 shadow-emerald-900/20' : 'border-slate-800'}`}>
@@ -415,6 +418,8 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
                   <h3 className="text-lg font-bold text-white flex items-center gap-2">
                     <User className="w-4 h-4 text-slate-400" />
                     {player.name}
+                    {hasMotm && <span className="bg-blue-500/20 text-blue-400 text-[10px] px-2 py-0.5 rounded border border-blue-500/30 flex items-center gap-1 uppercase tracking-wider"><Trophy size={10} /> MOM</span>}
+                    {hasDotd && <span className="bg-pink-500/20 text-pink-400 text-[10px] px-2 py-0.5 rounded border border-pink-500/30 flex items-center gap-1 uppercase tracking-wider"><ThumbsDown size={10} /> DOD</span>}
                   </h3>
                   <div className="text-sm text-slate-400 mt-1 flex gap-3 font-mono">
                     <span>Base: {formatCurrency(player.totalOwed)}</span>
@@ -455,12 +460,12 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
               </div>
 
               {/* Actions Grid */}
-              <div className="p-4 grid grid-cols-4 gap-2">
+              <div className="p-4 grid grid-cols-6 gap-2">
                 {/* Basic Increment */}
                 <button 
                   disabled={isPaid}
                   onClick={() => updateSessionAmount(id, FINE_AMOUNTS.STANDARD_INCREMENT)}
-                  className="col-span-2 bg-slate-800/80 hover:bg-slate-700 text-white py-4 rounded-xl font-semibold flex flex-col items-center justify-center disabled:opacity-20 border border-slate-700 active:scale-95 transition-all"
+                  className="col-span-3 bg-slate-800/80 hover:bg-slate-700 text-white py-4 rounded-xl font-semibold flex flex-col items-center justify-center disabled:opacity-20 border border-slate-700 active:scale-95 transition-all"
                 >
                   <span className="text-[10px] text-slate-400 uppercase tracking-widest">Fine</span>
                   <span className="text-lg font-mono">+50p</span>
@@ -468,7 +473,7 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
                 <button 
                   disabled={isPaid}
                   onClick={() => updateSessionAmount(id, -FINE_AMOUNTS.STANDARD_INCREMENT)}
-                  className="col-span-2 bg-slate-800/80 hover:bg-slate-700 text-white py-4 rounded-xl font-semibold flex flex-col items-center justify-center disabled:opacity-20 border border-slate-700 active:scale-95 transition-all"
+                  className="col-span-3 bg-slate-800/80 hover:bg-slate-700 text-white py-4 rounded-xl font-semibold flex flex-col items-center justify-center disabled:opacity-20 border border-slate-700 active:scale-95 transition-all"
                 >
                     <span className="text-[10px] text-slate-400 uppercase tracking-widest">Undo</span>
                     <span className="text-lg font-mono">-50p</span>
@@ -478,43 +483,23 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
                 <button 
                   disabled={isPaid}
                   onClick={() => updateSessionAmount(id, FINE_AMOUNTS.GREEN_CARD, 'GRN')}
-                  className="col-span-1 aspect-square bg-slate-800/80 hover:bg-emerald-900/20 text-emerald-500 rounded-xl flex flex-col items-center justify-center disabled:opacity-20 border border-slate-700 active:scale-95 transition-all"
+                  className="col-span-2 aspect-[4/3] bg-slate-800/80 hover:bg-emerald-900/20 text-emerald-500 rounded-xl flex flex-col items-center justify-center disabled:opacity-20 border border-slate-700 active:scale-95 transition-all"
                 >
                   <Triangle className="w-6 h-6 mb-1 fill-current" />
                 </button>
                 <button 
                   disabled={isPaid}
                   onClick={() => updateSessionAmount(id, FINE_AMOUNTS.YELLOW_CARD, 'YLW')}
-                  className="col-span-1 aspect-square bg-slate-800/80 hover:bg-yellow-900/20 text-yellow-500 rounded-xl flex flex-col items-center justify-center disabled:opacity-20 border border-slate-700 active:scale-95 transition-all"
+                  className="col-span-2 aspect-[4/3] bg-slate-800/80 hover:bg-yellow-900/20 text-yellow-500 rounded-xl flex flex-col items-center justify-center disabled:opacity-20 border border-slate-700 active:scale-95 transition-all"
                 >
                    <Square className="w-6 h-6 mb-1 fill-current" />
                 </button>
                 <button 
                   disabled={isPaid}
                   onClick={() => updateSessionAmount(id, FINE_AMOUNTS.RED_CARD, 'RED')}
-                  className="col-span-1 aspect-square bg-slate-800/80 hover:bg-red-900/20 text-red-500 rounded-xl flex flex-col items-center justify-center disabled:opacity-20 border border-slate-700 active:scale-95 transition-all"
+                  className="col-span-2 aspect-[4/3] bg-slate-800/80 hover:bg-red-900/20 text-red-500 rounded-xl flex flex-col items-center justify-center disabled:opacity-20 border border-slate-700 active:scale-95 transition-all"
                 >
                    <Circle className="w-6 h-6 mb-1 fill-current" />
-                </button>
-                
-                {/* Honors/Dishonors */}
-                <button 
-                  disabled={isPaid}
-                  onClick={() => updateSessionAmount(id, FINE_AMOUNTS.MOTM, 'MOTM')}
-                  className="col-span-1 aspect-square bg-blue-900/10 hover:bg-blue-900/20 text-blue-400 border border-blue-500/20 rounded-xl flex flex-col items-center justify-center disabled:opacity-20 active:scale-95 transition-all"
-                >
-                   <Award className="w-6 h-6" />
-                   <span className="text-[10px] font-bold mt-1">MOM</span>
-                </button>
-                
-                {/* DOTD - Full width if odd number */}
-                 <button 
-                  disabled={isPaid}
-                  onClick={() => updateSessionAmount(id, FINE_AMOUNTS.DOTD, 'DOTD')}
-                  className="col-span-4 mt-2 bg-pink-900/10 hover:bg-pink-900/20 text-pink-400 border border-pink-500/20 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-20 active:scale-95 transition-all"
-                >
-                   <XCircle className="w-5 h-5" />
-                   Dick of the Day (+£2.00)
                 </button>
               </div>
 

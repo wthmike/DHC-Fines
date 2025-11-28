@@ -114,7 +114,7 @@ export default function App() {
   };
 
   const handleFinishSession = async (sessionData: SessionData, opponentName: string) => {
-    const transactions: { playerId: string; playerName: string; amount: number; tags: string[] }[] = [];
+    const transactions: { playerId: string; playerName: string; amount: number; tags: string[]; isPaidOff: boolean }[] = [];
     
     // We use a batch to ensure all updates happen together or not at all
     const batch = writeBatch(db);
@@ -133,12 +133,13 @@ export default function App() {
       }
 
       // 1. Prepare History Transaction Data
-      if (totalSessionAmount > 0) {
+      if (totalSessionAmount > 0 || data.isPaidOff) {
         transactions.push({
           playerId: player.id,
           playerName: player.name,
           amount: totalSessionAmount,
-          tags: finalTags
+          tags: finalTags,
+          isPaidOff: data.isPaidOff
         });
       }
 
