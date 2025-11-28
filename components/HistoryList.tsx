@@ -40,7 +40,7 @@ export const HistoryList: React.FC<HistoryListProps> = ({ history, onDelete }) =
               })}
               {isPaidOff && (
                   <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
-                      PAID OFF
+                      Paid Off
                   </span>
               )}
           </div>

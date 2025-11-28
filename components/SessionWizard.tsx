@@ -3,8 +3,8 @@ import { Player, SessionData } from '../types';
 import { FINE_AMOUNTS } from '../constants';
 import { formatCurrency } from '../utils';
 import { 
-  Check, User, ArrowLeft, Gavel, Award, CreditCard, RotateCcw, 
-  XCircle, Triangle, Square, Circle, PackageCheck, PackageX,
+  Check, User, ArrowLeft, Gavel, CreditCard, RotateCcw, 
+  Triangle, Square, Circle, PackageCheck, PackageX,
   Trophy, ThumbsDown, Plus, Minus, ArrowRight
 } from 'lucide-react';
 
