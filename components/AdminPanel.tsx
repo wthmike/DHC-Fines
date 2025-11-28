@@ -8,6 +8,7 @@ interface AdminPanelProps {
   players: Player[];
   history: SessionRecord[];
   onUpdatePlayer: (id: string, newTotal: number) => void;
+  onUpdatePlayerName: (id: string, newName: string) => void;
   onStartSession: () => void;
   onAddPlayer: (name: string) => void;
   onRemovePlayer: (id: string) => void;
@@ -18,6 +19,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   players, 
   history,
   onUpdatePlayer, 
+  onUpdatePlayerName,
   onStartSession,
   onAddPlayer,
   onRemovePlayer,
@@ -29,6 +31,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>('');
+  const [editNameValue, setEditNameValue] = useState<string>('');
   const [newPlayerName, setNewPlayerName] = useState('');
 
   // Delete Modal State
@@ -90,12 +93,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const startEditing = (player: Player) => {
     setEditingId(player.id);
     setEditValue(player.totalOwed.toString());
+    setEditNameValue(player.name);
   };
 
   const saveEdit = (id: string) => {
     const val = parseFloat(editValue);
     if (!isNaN(val)) {
       onUpdatePlayer(id, val);
+    }
+    if (editNameValue.trim()) {
+      onUpdatePlayerName(id, editNameValue.trim());
     }
     setEditingId(null);
   };
@@ -205,9 +212,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
           {players.map((player) => (
             <div key={player.id} className="p-4 flex items-center justify-between hover:bg-slate-800/30 transition-colors">
-              <span className="font-medium text-slate-200 text-base sm:text-lg">{player.name}</span>
+              {editingId === player.id ? (
+                <input
+                  type="text"
+                  value={editNameValue}
+                  onChange={(e) => setEditNameValue(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && saveEdit(player.id)}
+                  className="flex-1 bg-slate-950 border border-blue-500/50 rounded-lg text-white px-3 py-2 mr-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base min-w-0"
+                  placeholder="Player Name"
+                  autoFocus
+                />
+              ) : (
+                <span className="font-medium text-slate-200 text-base sm:text-lg truncate mr-2">{player.name}</span>
+              )}
               
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-shrink-0">
                 {editingId === player.id ? (
                   <div className="flex items-center gap-2 animate-in fade-in zoom-in duration-200">
                     <span className="text-slate-500 text-sm">£</span>
@@ -216,8 +235,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       step="0.01"
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && saveEdit(player.id)}
                       className="w-20 px-2 py-1 bg-slate-950 border border-blue-500/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                      autoFocus
                     />
                     <button
                       onClick={() => saveEdit(player.id)}

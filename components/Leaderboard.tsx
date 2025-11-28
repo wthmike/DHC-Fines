@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Player, SessionRecord } from '../types';
 import { formatCurrency } from '../utils';
 import { HistoryList } from './HistoryList';
-import { Wallet, TrendingUp, AlertCircle } from 'lucide-react';
+import { Wallet, TrendingUp, AlertCircle, CreditCard, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface LeaderboardProps {
   players: Player[];
@@ -10,6 +10,7 @@ interface LeaderboardProps {
 }
 
 export const Leaderboard: React.FC<LeaderboardProps> = ({ players, history }) => {
+  const [showPayment, setShowPayment] = useState(false);
   const sortedPlayers = [...players].sort((a, b) => b.totalOwed - a.totalOwed);
   const totalDebt = players.reduce((sum, p) => sum + p.totalOwed, 0);
 
@@ -17,13 +18,13 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ players, history }) =>
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         
         {/* Total Pot Card */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-orange-600 to-red-700 rounded-2xl shadow-2xl shadow-orange-900/20 p-6 text-white border border-white/10">
+        <div className="relative overflow-hidden bg-gradient-to-br from-orange-600 to-red-700 rounded-2xl shadow-2xl shadow-orange-900/20 text-white border border-white/10 transition-all duration-300">
             {/* Decorative blurs */}
-            <div className="absolute top-0 right-0 -mr-8 -mt-8 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-32 h-32 bg-black/10 rounded-full blur-2xl"></div>
+            <div className="absolute top-0 right-0 -mr-8 -mt-8 w-40 h-40 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-32 h-32 bg-black/10 rounded-full blur-2xl pointer-events-none"></div>
             
-            <div className="relative z-10">
-                <div className="flex justify-between items-start mb-10">
+            <div className="relative z-10 p-6">
+                <div className="flex justify-between items-start mb-8">
                     <div className="flex items-center gap-2 text-orange-100/90 text-xs font-semibold uppercase tracking-widest font-sans">
                         <Wallet className="w-4 h-4" />
                         Team Fund
@@ -33,7 +34,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ players, history }) =>
                     </div>
                 </div>
                 
-                <div>
+                <div className="mb-2">
                     <div className="text-5xl font-sans font-bold tracking-tighter mb-2 text-white">
                         {formatCurrency(totalDebt)}
                     </div>
@@ -42,6 +43,48 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ players, history }) =>
                         <span>Outstanding balance</span>
                     </div>
                 </div>
+            </div>
+
+            {/* Payment Details Section */}
+             <div className={`bg-black/10 backdrop-blur-sm border-t border-white/10 transition-all duration-300 ease-in-out ${showPayment ? 'bg-black/20' : 'hover:bg-black/20'}`}>
+                <button 
+                    onClick={() => setShowPayment(!showPayment)}
+                    className="w-full px-6 py-3 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-orange-100/80 hover:text-white transition-colors"
+                >
+                    <span className="flex items-center gap-2">
+                        <CreditCard className="w-4 h-4" />
+                        Make a Payment
+                    </span>
+                    {showPayment ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+
+                {showPayment && (
+                    <div className="px-6 pb-6 space-y-4 animate-in slide-in-from-top-2 fade-in duration-200">
+                        <div className="grid grid-cols-2 gap-4 text-sm font-mono text-white/90">
+                            <div>
+                                <div className="text-[10px] text-orange-200/60 uppercase mb-0.5">Account Name</div>
+                                <div className="font-semibold text-white">Kev Welsh</div>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-[10px] text-orange-200/60 uppercase mb-0.5">Sort Code</div>
+                                <div className="tracking-widest">04-00-75</div>
+                            </div>
+                            <div className="col-span-2 bg-white/5 p-3 rounded-lg border border-white/5 flex items-center justify-between">
+                                <div>
+                                    <div className="text-[10px] text-orange-200/60 uppercase mb-0.5">Account Number</div>
+                                    <div className="tracking-widest text-lg">06149529</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="bg-orange-500/10 rounded-lg p-3 text-xs leading-relaxed text-orange-100/90 border border-orange-500/20 flex gap-2">
+                            <AlertCircle className="w-4 h-4 flex-shrink-0 text-orange-400 mt-0.5" />
+                            <span>
+                                Please use <strong className="text-white font-mono">DHC</strong> in the payment reference and message Kev once paid.
+                            </span>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
 

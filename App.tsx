@@ -60,6 +60,14 @@ export default function App() {
     }
   };
 
+  const updatePlayerName = async (id: string, newName: string) => {
+    try {
+      await updateDoc(doc(db, "players", id), { name: newName });
+    } catch (e) {
+      console.error("Error updating player name", e);
+    }
+  };
+
   const addPlayer = async (name: string) => {
     try {
       await addDoc(collection(db, "players"), {
@@ -253,6 +261,7 @@ export default function App() {
                 players={players}
                 history={history}
                 onUpdatePlayer={updatePlayerTotal}
+                onUpdatePlayerName={updatePlayerName}
                 onAddPlayer={addPlayer}
                 onRemovePlayer={removePlayer}
                 onStartSession={() => setView(ViewState.SESSION_SETUP)}
