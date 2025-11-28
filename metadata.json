@@ -1,0 +1,5 @@
+{
+  "name": "DuchyBank",
+  "description": "The premium fine management system for Duchy Hockey Club. Manage debts, cards, and session history.",
+  "requestFramePermissions": []
+}
