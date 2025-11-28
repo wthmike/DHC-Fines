@@ -83,14 +83,23 @@ export default function App() {
     const session = history.find(s => s.id === sessionId);
     if (!session) return;
     
-    if (!window.confirm("Are you sure you want to delete this session? This will reverse all fines applied in this session.")) return;
-
+    // Note: Confirmation UI is handled in AdminPanel now.
+    
     const batch = writeBatch(db);
     
     // Reverse transactions
     session.transactions.forEach(t => {
-      const playerRef = doc(db, "players", t.playerId);
-      batch.update(playerRef, { totalOwed: increment(-t.amount) });
+      // CRITICAL CHECK: Only attempt to update players that still exist.
+      // If a player was deleted from the roster, we cannot update their doc.
+      // Trying to update a non-existent doc in a batch will fail the entire batch.
+      const playerExists = players.some(p => p.id === t.playerId);
+      
+      if (playerExists) {
+        const playerRef = doc(db, "players", t.playerId);
+        batch.update(playerRef, { totalOwed: increment(-t.amount) });
+      } else {
+        console.warn(`Skipping refund for player ${t.playerName} (${t.playerId}) as they no longer exist in the database.`);
+      }
     });
 
     // Delete history record
@@ -100,7 +109,7 @@ export default function App() {
       await batch.commit();
     } catch (e) {
       console.error("Error deleting session", e);
-      alert("Failed to delete session. Please try again.");
+      alert("Failed to delete session. Check console for details.");
     }
   };
 

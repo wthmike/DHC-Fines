@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Player, SessionData } from '../types';
 import { FINE_AMOUNTS } from '../constants';
 import { formatCurrency } from '../utils';
-import { Check, User, ArrowLeft, Gavel, Award, CreditCard, RotateCcw, XCircle, Triangle, Square, Circle, PackageCheck, PackageX } from 'lucide-react';
+import { 
+  Check, User, ArrowLeft, Gavel, Award, CreditCard, RotateCcw, 
+  XCircle, Triangle, Square, Circle, PackageCheck, PackageX,
+  Trophy, ThumbsDown, Plus, Minus, ArrowRight
+} from 'lucide-react';
 
 interface SessionWizardProps {
   allPlayers: Player[];
@@ -11,16 +15,20 @@ interface SessionWizardProps {
 }
 
 export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFinishSession, onCancel }) => {
-  const [step, setStep] = useState<'SELECT' | 'ACTIVE'>('SELECT');
+  const [step, setStep] = useState<'SELECT' | 'VOTING' | 'ACTIVE'>('SELECT');
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<Set<string>>(new Set());
   const [sessionData, setSessionData] = useState<SessionData>({});
   const [opponentName, setOpponentName] = useState('');
+
+  // Voting State
+  const [motmVotes, setMotmVotes] = useState<Record<string, number>>({});
+  const [dotdVotes, setDotdVotes] = useState<Record<string, number>>({});
 
   // Initialize session data when players are selected
   useEffect(() => {
     const initialData: SessionData = {};
     selectedPlayerIds.forEach(id => {
-      // Preserve existing data if navigating back/forth, but default itemBrought to false (item missing -> fine)
+      // Preserve existing data if navigating back/forth
       initialData[id] = sessionData[id] || { 
         addedAmount: 0, 
         isPaidOff: false, 
@@ -90,6 +98,85 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
     return base + added + itemFine;
   };
 
+  // Voting Logic
+  const handleVoteChange = (type: 'MOTM' | 'DOTD', playerId: string, delta: number) => {
+    const setVotes = type === 'MOTM' ? setMotmVotes : setDotdVotes;
+    setVotes(prev => {
+      const current = prev[playerId] || 0;
+      const newVal = Math.max(0, current + delta);
+      if (newVal === 0) {
+        const { [playerId]: _, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [playerId]: newVal };
+    });
+  };
+
+  const addNominee = (type: 'MOTM' | 'DOTD', playerId: string) => {
+    if (!playerId) return;
+    handleVoteChange(type, playerId, 1); // Start with 1 vote
+  };
+
+  const finalizeVoting = () => {
+    // 1. Reset any existing MOTM/DOTD data in sessionData (in case we went back and changed votes)
+    const newSessionData = { ...sessionData };
+    Object.keys(newSessionData).forEach(id => {
+       const playerSession = { ...newSessionData[id] };
+       // Filter out existing MOTM/DOTD tags to avoid duplicates if re-running
+       const hasMotm = playerSession.tags.includes('MOTM');
+       const hasDotd = playerSession.tags.includes('DOTD');
+       
+       if (hasMotm || hasDotd) {
+          let deduction = 0;
+          if (hasMotm) deduction += FINE_AMOUNTS.MOTM;
+          if (hasDotd) deduction += FINE_AMOUNTS.DOTD;
+          
+          playerSession.tags = playerSession.tags.filter(t => t !== 'MOTM' && t !== 'DOTD');
+          playerSession.addedAmount -= deduction;
+          newSessionData[id] = playerSession;
+       }
+    });
+
+    // 2. Determine Winners
+    const getWinners = (votes: Record<string, number>) => {
+      let max = 0;
+      let winners: string[] = [];
+      Object.entries(votes).forEach(([id, count]) => {
+         // Only consider players who are still selected in the squad
+         if (!selectedPlayerIds.has(id)) return;
+         
+         if (count > max) {
+            max = count;
+            winners = [id];
+         } else if (count === max && max > 0) {
+            winners.push(id);
+         }
+      });
+      return winners;
+    };
+
+    const motmWinners = getWinners(motmVotes);
+    const dotdWinners = getWinners(dotdVotes);
+
+    // 3. Apply Fines & Tags
+    motmWinners.forEach(id => {
+       if (newSessionData[id]) {
+         newSessionData[id].addedAmount += FINE_AMOUNTS.MOTM;
+         newSessionData[id].tags.push('MOTM');
+       }
+    });
+
+    dotdWinners.forEach(id => {
+       if (newSessionData[id]) {
+         newSessionData[id].addedAmount += FINE_AMOUNTS.DOTD;
+         newSessionData[id].tags.push('DOTD');
+       }
+    });
+
+    setSessionData(newSessionData);
+    setStep('ACTIVE');
+  };
+
   // --- RENDER STEP 1: SELECTION ---
   if (step === 'SELECT') {
     return (
@@ -142,11 +229,11 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-950 via-slate-950 to-slate-950/0 z-20">
           <div className="max-w-md mx-auto">
              <button
-                onClick={() => setStep('ACTIVE')}
+                onClick={() => setStep('VOTING')}
                 disabled={selectedPlayerIds.size === 0 || !opponentName.trim()}
-                className="w-full bg-blue-600 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed hover:bg-blue-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-900/30 transition-all active:scale-95"
+                className="w-full bg-blue-600 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed hover:bg-blue-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-900/30 transition-all active:scale-95 flex items-center justify-center gap-2"
             >
-                Start Session ({selectedPlayerIds.size})
+                Next: Voting <ArrowRight className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -154,12 +241,140 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
     );
   }
 
-  // --- RENDER STEP 2: ACTIVE SESSION ---
+  // --- RENDER STEP 2: VOTING ---
+  if (step === 'VOTING') {
+    const selectedPlayersList = allPlayers.filter(p => selectedPlayerIds.has(p.id));
+    
+    // Helper for rendering a voting section
+    const renderVotingSection = (
+      title: string, 
+      type: 'MOTM' | 'DOTD', 
+      votes: Record<string, number>, 
+      icon: React.ReactNode,
+      themeColor: string
+    ) => {
+      const candidates = Object.entries(votes).filter(([id]) => selectedPlayerIds.has(id)).sort((a,b) => b[1] - a[1]);
+      const maxVotes = Math.max(...candidates.map(([, c]) => c), 0);
+      
+      return (
+        <div className={`bg-slate-900/50 rounded-2xl border border-slate-800 overflow-hidden mb-6`}>
+           <div className={`p-4 border-b border-slate-800 flex items-center justify-between ${themeColor === 'blue' ? 'bg-blue-900/20' : 'bg-pink-900/20'}`}>
+              <div className="flex items-center gap-2 font-bold text-white uppercase tracking-wider text-sm">
+                 {icon} {title}
+              </div>
+           </div>
+           
+           <div className="p-4 space-y-4">
+              {/* Add Candidate Dropdown */}
+              <div className="relative">
+                <select 
+                  className="w-full bg-slate-950 border border-slate-700 text-slate-300 py-3 px-4 rounded-xl appearance-none focus:ring-2 focus:ring-slate-500 outline-none"
+                  onChange={(e) => {
+                     addNominee(type, e.target.value);
+                     e.target.value = '';
+                  }}
+                  defaultValue=""
+                >
+                  <option value="" disabled>+ Add Nominee</option>
+                  {selectedPlayersList
+                    .filter(p => !votes[p.id]) // Hide already nominated
+                    .sort((a,b) => a.name.localeCompare(b.name))
+                    .map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                   <Plus className="w-4 h-4" />
+                </div>
+              </div>
+
+              {/* Candidates List */}
+              <div className="space-y-2">
+                 {candidates.map(([id, count]) => {
+                   const player = allPlayers.find(p => p.id === id);
+                   const isLeader = count === maxVotes && count > 0;
+                   return (
+                     <div key={id} className={`flex items-center justify-between p-3 rounded-xl border transition-all ${isLeader ? (themeColor === 'blue' ? 'bg-blue-500/10 border-blue-500/50' : 'bg-pink-500/10 border-pink-500/50') : 'bg-slate-800/30 border-slate-800'}`}>
+                        <div className="font-medium text-slate-200">
+                           {player?.name}
+                           {isLeader && <span className="ml-2 text-[10px] font-bold bg-white/10 px-1.5 py-0.5 rounded text-white uppercase">Leader</span>}
+                        </div>
+                        <div className="flex items-center gap-3">
+                           <button 
+                             onClick={() => handleVoteChange(type, id, -1)}
+                             className="w-8 h-8 flex items-center justify-center bg-slate-800 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700"
+                           >
+                             <Minus className="w-4 h-4" />
+                           </button>
+                           <span className="w-6 text-center font-mono font-bold text-lg">{count}</span>
+                           <button 
+                             onClick={() => handleVoteChange(type, id, 1)}
+                             className={`w-8 h-8 flex items-center justify-center rounded-lg text-white ${themeColor === 'blue' ? 'bg-blue-600 hover:bg-blue-500' : 'bg-pink-600 hover:bg-pink-500'}`}
+                           >
+                             <Plus className="w-4 h-4" />
+                           </button>
+                        </div>
+                     </div>
+                   );
+                 })}
+                 {candidates.length === 0 && (
+                    <div className="text-center py-4 text-slate-600 text-sm italic">
+                       No nominees yet.
+                    </div>
+                 )}
+              </div>
+           </div>
+        </div>
+      );
+    };
+
+    return (
+      <div className="flex flex-col h-full animate-in slide-in-from-right duration-300">
+         <div className="mb-6">
+          <button onClick={() => setStep('SELECT')} className="text-slate-400 flex items-center gap-1 hover:text-white mb-4 transition-colors font-medium">
+            <ArrowLeft className="w-4 h-4" /> Back to Squad
+          </button>
+          <h2 className="text-3xl font-serif text-white mb-1">Post-Match Voting</h2>
+          <p className="text-slate-400 text-sm font-light">Determine honors & dishonors.</p>
+        </div>
+
+        <div className="flex-1 overflow-y-auto pb-24 no-scrollbar">
+            {renderVotingSection('Man of the Match', 'MOTM', motmVotes, <Trophy className="w-4 h-4 text-blue-400"/>, 'blue')}
+            {renderVotingSection('Dick of the Day', 'DOTD', dotdVotes, <ThumbsDown className="w-4 h-4 text-pink-400"/>, 'pink')}
+        </div>
+
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-950 via-slate-950 to-slate-950/0 z-20">
+          <div className="max-w-md mx-auto space-y-3">
+             <button
+                onClick={finalizeVoting}
+                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-emerald-900/30 transition-all active:scale-95 flex items-center justify-center gap-2"
+            >
+                <Gavel className="w-5 h-5" />
+                Start Fines Session
+            </button>
+            <button
+                onClick={() => {
+                   // Clear votes and proceed
+                   setMotmVotes({});
+                   setDotdVotes({});
+                   setStep('ACTIVE');
+                }}
+                className="w-full text-slate-500 hover:text-white text-sm font-medium py-2"
+            >
+                Skip Voting & Proceed
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --- RENDER STEP 3: ACTIVE SESSION ---
   return (
     <div className="flex flex-col h-full animate-in slide-in-from-right duration-300 bg-slate-950">
       <div className="mb-6 space-y-4">
-        <button onClick={() => setStep('SELECT')} className="text-slate-400 flex items-center gap-1 hover:text-white w-fit transition-colors font-medium">
-            <ArrowLeft className="w-4 h-4" /> Back to Setup
+        <button onClick={() => setStep('VOTING')} className="text-slate-400 flex items-center gap-1 hover:text-white w-fit transition-colors font-medium">
+            <ArrowLeft className="w-4 h-4" /> Back to Voting
         </button>
         <div className="flex items-center justify-between bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-lg">
             <div>

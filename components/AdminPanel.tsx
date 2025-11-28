@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Player, SessionRecord } from '../types';
 import { formatCurrency } from '../utils';
 import { HistoryList } from './HistoryList';
-import { Edit2, Save, Play, UserPlus, Trash2, Shield, Lock, ArrowRight, AlertCircle } from 'lucide-react';
+import { Edit2, Save, Play, UserPlus, Trash2, Shield, Lock, ArrowRight, AlertCircle, AlertTriangle } from 'lucide-react';
 
 interface AdminPanelProps {
   players: Player[];
@@ -30,6 +30,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>('');
   const [newPlayerName, setNewPlayerName] = useState('');
+
+  // Delete Modal State
+  const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,6 +110,44 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
+      
+      {/* Delete Confirmation Modal */}
+      {sessionToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4 animate-in zoom-in-95 duration-200">
+                <div className="flex items-center gap-3 text-red-400 mb-1">
+                    <div className="p-3 bg-red-500/10 rounded-full border border-red-500/20">
+                        <AlertTriangle className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white">Delete Session?</h3>
+                </div>
+                
+                <p className="text-slate-400 text-sm leading-relaxed">
+                    This will permanently remove the match record and <span className="text-red-400 font-bold">reverse all fines</span> (including cards, MoM, DoD) associated with it from the players' totals.
+                </p>
+                
+                <div className="flex gap-3 pt-3">
+                    <button 
+                        onClick={() => setSessionToDelete(null)}
+                        className="flex-1 px-4 py-3 rounded-xl bg-slate-800 text-slate-300 font-medium hover:bg-slate-700 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        onClick={() => {
+                            onDeleteSession(sessionToDelete);
+                            setSessionToDelete(null);
+                        }}
+                        className="flex-1 px-4 py-3 rounded-xl bg-red-600 text-white font-bold hover:bg-red-500 shadow-lg shadow-red-900/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+      )}
+
       {/* Actions */}
       <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl shadow-lg border border-slate-700/50">
         <h3 className="text-xl font-serif text-white mb-4 flex items-center gap-2">
@@ -223,7 +264,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       <div className="pt-6">
         <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-3 px-1 font-sans">Manage History</h3>
         <div className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm p-4">
-            <HistoryList history={history} onDelete={onDeleteSession} />
+            {/* We pass a function that sets state instead of executing delete immediately */}
+            <HistoryList history={history} onDelete={(id) => setSessionToDelete(id)} />
         </div>
       </div>
     </div>
