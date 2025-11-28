@@ -1,22 +1,27 @@
 import React, { useState } from 'react';
-import { Player } from '../types';
+import { Player, SessionRecord } from '../types';
 import { formatCurrency } from '../utils';
+import { HistoryList } from './HistoryList';
 import { Edit2, Save, Play, UserPlus, Trash2, Shield, Lock, ArrowRight, AlertCircle } from 'lucide-react';
 
 interface AdminPanelProps {
   players: Player[];
+  history: SessionRecord[];
   onUpdatePlayer: (id: string, newTotal: number) => void;
   onStartSession: () => void;
   onAddPlayer: (name: string) => void;
   onRemovePlayer: (id: string) => void;
+  onDeleteSession: (id: string) => void;
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ 
   players, 
+  history,
   onUpdatePlayer, 
   onStartSession,
   onAddPlayer,
-  onRemovePlayer
+  onRemovePlayer,
+  onDeleteSession
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
@@ -121,6 +126,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       <div className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm">
         <div className="p-4 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center">
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider font-sans">Team Roster</h3>
+          <span className="text-xs text-slate-600 font-mono">{players.length} Players</span>
         </div>
 
         {/* Add Player Input */}
@@ -145,9 +151,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
         {/* Player List */}
         <div className="divide-y divide-slate-800">
+          {/* Header Row for clearer columns */}
+          {players.length > 0 && (
+            <div className="px-4 py-2 flex items-center justify-between bg-slate-900/80 text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+               <span>Name</span>
+               <div className="flex items-center gap-4 pr-1">
+                   <span>Fine</span>
+                   <span>Actions</span>
+               </div>
+            </div>
+          )}
+
           {players.map((player) => (
             <div key={player.id} className="p-4 flex items-center justify-between hover:bg-slate-800/30 transition-colors">
-              <span className="font-medium text-slate-200 text-lg">{player.name}</span>
+              <span className="font-medium text-slate-200 text-base sm:text-lg">{player.name}</span>
               
               <div className="flex items-center gap-3">
                 {editingId === player.id ? (
@@ -158,7 +175,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       step="0.01"
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
-                      className="w-24 px-3 py-1 bg-slate-950 border border-blue-500/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                      className="w-20 px-2 py-1 bg-slate-950 border border-blue-500/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                       autoFocus
                     />
                     <button
@@ -169,8 +186,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     </button>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-4">
-                    <span className={`font-mono font-medium text-lg ${player.totalOwed > 0 ? 'text-red-400' : 'text-slate-500'}`}>
+                  <div className="flex items-center gap-3">
+                    <span className={`font-mono font-medium text-base sm:text-lg w-16 text-right ${player.totalOwed > 0 ? 'text-red-400' : 'text-slate-500'}`}>
                       {formatCurrency(player.totalOwed)}
                     </span>
                     <div className="flex gap-1">
@@ -199,6 +216,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 Roster is empty.
              </div>
           )}
+        </div>
+      </div>
+
+      {/* Match History Management */}
+      <div className="pt-6">
+        <h3 className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-3 px-1 font-sans">Manage History</h3>
+        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm p-4">
+            <HistoryList history={history} onDelete={onDeleteSession} />
         </div>
       </div>
     </div>

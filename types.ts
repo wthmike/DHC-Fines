@@ -6,9 +6,10 @@ export interface Player {
 
 export interface SessionData {
   [playerId: string]: {
-    addedAmount: number; // Amount added during this session
+    addedAmount: number; // Amount added during this session (excluding item fine)
     isPaidOff: boolean; // If true, the final calculation zeroes everything
     tags: string[]; // Codes for events: 'MOTM', 'DOTD', 'GRN', 'YLW', 'RED'
+    itemBrought: boolean; // If false, adds £1 fine. If true, no fine.
   };
 }
 

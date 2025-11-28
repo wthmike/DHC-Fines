@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Player, SessionData } from '../types';
 import { FINE_AMOUNTS } from '../constants';
 import { formatCurrency } from '../utils';
-import { Check, User, ArrowLeft, Gavel, Award, CreditCard, RotateCcw, XCircle, Triangle, Square, Circle } from 'lucide-react';
+import { Check, User, ArrowLeft, Gavel, Award, CreditCard, RotateCcw, XCircle, Triangle, Square, Circle, PackageCheck, PackageX } from 'lucide-react';
 
 interface SessionWizardProps {
   allPlayers: Player[];
@@ -20,7 +20,13 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
   useEffect(() => {
     const initialData: SessionData = {};
     selectedPlayerIds.forEach(id => {
-      initialData[id] = sessionData[id] || { addedAmount: 0, isPaidOff: false, tags: [] };
+      // Preserve existing data if navigating back/forth, but default itemBrought to false (item missing -> fine)
+      initialData[id] = sessionData[id] || { 
+        addedAmount: 0, 
+        isPaidOff: false, 
+        tags: [],
+        itemBrought: false 
+      };
     });
     setSessionData(prev => ({ ...prev, ...initialData }));
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -53,6 +59,17 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
     });
   };
 
+  const toggleItemBrought = (id: string) => {
+      setSessionData(prev => ({
+          ...prev,
+          [id]: {
+              ...prev[id],
+              itemBrought: !prev[id].itemBrought,
+              isPaidOff: false // Unpay if modifying amount
+          }
+      }));
+  };
+
   const markAsPaid = (id: string) => {
     setSessionData(prev => ({
       ...prev,
@@ -66,10 +83,11 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
   const calculateTotalForPlayer = (id: string) => {
     const base = allPlayers.find(p => p.id === id)?.totalOwed || 0;
     const added = sessionData[id]?.addedAmount || 0;
+    const itemFine = !sessionData[id]?.itemBrought ? 1.00 : 0;
     const isPaid = sessionData[id]?.isPaidOff;
     
     if (isPaid) return 0;
-    return base + added;
+    return base + added + itemFine;
   };
 
   // --- RENDER STEP 1: SELECTION ---
@@ -168,6 +186,8 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
           if (!player) return null;
           
           const sessionAdded = sessionData[id]?.addedAmount || 0;
+          const itemBrought = sessionData[id]?.itemBrought || false;
+          const itemFine = !itemBrought ? 1.00 : 0;
           const isPaid = sessionData[id]?.isPaidOff || false;
           const projectedTotal = calculateTotalForPlayer(id);
 
@@ -183,8 +203,8 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
                   </h3>
                   <div className="text-sm text-slate-400 mt-1 flex gap-3 font-mono">
                     <span>Base: {formatCurrency(player.totalOwed)}</span>
-                    <span className={sessionAdded > 0 ? "text-red-400 font-bold" : "text-slate-600"}>
-                        Session: {sessionAdded > 0 ? '+' : ''}{formatCurrency(sessionAdded)}
+                    <span className={sessionAdded + itemFine > 0 ? "text-red-400 font-bold" : "text-slate-600"}>
+                        Session: {sessionAdded + itemFine > 0 ? '+' : ''}{formatCurrency(sessionAdded + itemFine)}
                     </span>
                   </div>
                 </div>
@@ -194,6 +214,29 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
                         {formatCurrency(projectedTotal)}
                     </div>
                 </div>
+              </div>
+
+              {/* Item Check Toggle */}
+              <div className="px-4 pt-4">
+                  <button
+                    disabled={isPaid}
+                    onClick={() => toggleItemBrought(id)}
+                    className={`w-full p-3 rounded-xl flex items-center justify-between border transition-all ${
+                        itemBrought 
+                        ? 'bg-emerald-900/10 border-emerald-500/30 text-emerald-400' 
+                        : 'bg-red-900/10 border-red-500/30 text-red-400'
+                    }`}
+                  >
+                      <div className="flex items-center gap-3">
+                        {itemBrought ? <PackageCheck className="w-5 h-5" /> : <PackageX className="w-5 h-5" />}
+                        <span className="font-bold text-sm uppercase tracking-wide">
+                            {itemBrought ? 'Item Brought' : 'Item Missing'}
+                        </span>
+                      </div>
+                      <span className="font-mono font-bold">
+                          {itemBrought ? '£0.00' : '+£1.00'}
+                      </span>
+                  </button>
               </div>
 
               {/* Actions Grid */}

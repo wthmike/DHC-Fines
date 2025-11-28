@@ -14,7 +14,8 @@ import {
   doc, 
   writeBatch,
   query,
-  orderBy
+  orderBy,
+  increment
 } from 'firebase/firestore';
 
 export default function App() {
@@ -78,6 +79,31 @@ export default function App() {
     }
   };
 
+  const deleteSession = async (sessionId: string) => {
+    const session = history.find(s => s.id === sessionId);
+    if (!session) return;
+    
+    if (!window.confirm("Are you sure you want to delete this session? This will reverse all fines applied in this session.")) return;
+
+    const batch = writeBatch(db);
+    
+    // Reverse transactions
+    session.transactions.forEach(t => {
+      const playerRef = doc(db, "players", t.playerId);
+      batch.update(playerRef, { totalOwed: increment(-t.amount) });
+    });
+
+    // Delete history record
+    batch.delete(doc(db, "history", sessionId));
+
+    try {
+      await batch.commit();
+    } catch (e) {
+      console.error("Error deleting session", e);
+      alert("Failed to delete session. Please try again.");
+    }
+  };
+
   const handleFinishSession = async (sessionData: SessionData, opponentName: string) => {
     const transactions: { playerId: string; playerName: string; amount: number; tags: string[] }[] = [];
     
@@ -88,13 +114,22 @@ export default function App() {
       const data = sessionData[player.id];
       if (!data) return;
 
+      let totalSessionAmount = data.addedAmount;
+      const finalTags = [...data.tags];
+
+      // Add Item Fine if not brought
+      if (!data.itemBrought) {
+        totalSessionAmount += 1.00;
+        finalTags.push('ITEM');
+      }
+
       // 1. Prepare History Transaction Data
-      if (data.addedAmount > 0) {
+      if (totalSessionAmount > 0) {
         transactions.push({
           playerId: player.id,
           playerName: player.name,
-          amount: data.addedAmount,
-          tags: data.tags || []
+          amount: totalSessionAmount,
+          tags: finalTags
         });
       }
 
@@ -103,10 +138,9 @@ export default function App() {
       
       if (data.isPaidOff) {
         batch.update(playerRef, { totalOwed: 0 });
-      } else if (data.addedAmount !== 0) {
+      } else if (totalSessionAmount !== 0) {
         // We calculate the new total based on current client state
-        // In a high-concurrency app we might use increment(), but direct set is fine here
-        batch.update(playerRef, { totalOwed: player.totalOwed + data.addedAmount });
+        batch.update(playerRef, { totalOwed: player.totalOwed + totalSessionAmount });
       }
     });
 
@@ -207,10 +241,12 @@ export default function App() {
         {view === ViewState.ADMIN_PANEL && (
             <AdminPanel 
                 players={players}
+                history={history}
                 onUpdatePlayer={updatePlayerTotal}
                 onAddPlayer={addPlayer}
                 onRemovePlayer={removePlayer}
                 onStartSession={() => setView(ViewState.SESSION_SETUP)}
+                onDeleteSession={deleteSession}
             />
         )}
 

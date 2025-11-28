@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { SessionRecord } from '../types';
 import { formatDate, formatCurrency } from '../utils';
-import { Calendar, ChevronDown, ChevronUp, Users } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronUp, Users, Trash2 } from 'lucide-react';
 
 interface HistoryListProps {
   history: SessionRecord[];
+  onDelete?: (id: string) => void;
 }
 
-export const HistoryList: React.FC<HistoryListProps> = ({ history }) => {
+export const HistoryList: React.FC<HistoryListProps> = ({ history, onDelete }) => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const toggleExpand = (id: string) => {
@@ -27,6 +28,7 @@ export const HistoryList: React.FC<HistoryListProps> = ({ history }) => {
                   if (tag === 'GRN') { badgeClass = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"; text = "Grn"; }
                   if (tag === 'YLW') { badgeClass = "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"; text = "Ylw"; }
                   if (tag === 'RED') { badgeClass = "bg-red-500/10 text-red-400 border-red-500/20"; text = "Red"; }
+                  if (tag === 'ITEM') { badgeClass = "bg-red-500/10 text-red-400 border-red-500/20"; text = "Item Missing"; }
 
                   return (
                       <span key={i} className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${badgeClass}`}>
@@ -38,14 +40,22 @@ export const HistoryList: React.FC<HistoryListProps> = ({ history }) => {
       );
   };
 
-  if (history.length === 0) return null;
+  if (history.length === 0) {
+      return (
+          <div className="text-center py-8 text-slate-500 text-sm italic">
+              No match history available.
+          </div>
+      );
+  }
 
   return (
-    <div className="mt-8">
-        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3 px-1 flex items-center gap-2 font-serif">
-            <Calendar className="w-4 h-4" />
-            Match History
-        </h3>
+    <div className={onDelete ? "" : "mt-8"}>
+        {!onDelete && (
+            <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3 px-1 flex items-center gap-2 font-serif">
+                <Calendar className="w-4 h-4" />
+                Match History
+            </h3>
+        )}
         <div className="space-y-3">
         {history.map((session) => {
             const totalFines = session.transactions.reduce((acc, t) => acc + t.amount, 0);
@@ -92,6 +102,21 @@ export const HistoryList: React.FC<HistoryListProps> = ({ history }) => {
                                 </ul>
                              ) : (
                                 <div className="text-xs text-slate-600 italic">No fines issued.</div>
+                             )}
+
+                             {onDelete && (
+                                <div className="mt-4 pt-4 border-t border-slate-800 flex justify-end">
+                                    <button 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onDelete(session.id);
+                                        }}
+                                        className="text-xs font-bold bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white px-3 py-2 rounded-lg flex items-center gap-2 border border-red-500/20 transition-all"
+                                    >
+                                        <Trash2 className="w-3 h-3" />
+                                        Delete Session Record
+                                    </button>
+                                </div>
                              )}
                         </div>
                     )}
