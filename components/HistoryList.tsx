@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { SessionRecord } from '../types';
 import { formatDate, formatCurrency } from '../utils';
-import { Calendar, ChevronDown, ChevronUp, Users, Trash2 } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronUp, Users, Trash2, CheckCircle } from 'lucide-react';
 
 interface HistoryListProps {
   history: SessionRecord[];
@@ -65,8 +65,47 @@ export const HistoryList: React.FC<HistoryListProps> = ({ history, onDelete }) =
         )}
         <div className="space-y-3">
         {history.map((session) => {
+            const isPayment = session.type === 'PAYMENT';
             const totalFines = session.transactions.reduce((acc, t) => acc + t.amount, 0);
             const isExpanded = expandedId === session.id;
+
+            if (isPayment) {
+                 const payer = session.transactions[0]?.playerName || "Unknown";
+                 return (
+                     <div key={session.id} className="bg-emerald-900/10 rounded-xl border border-emerald-500/20 overflow-hidden shadow-sm flex items-center justify-between p-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-emerald-500/20 rounded-full text-emerald-400">
+                                <CheckCircle className="w-4 h-4" />
+                            </div>
+                            <div>
+                                <div className="text-sm font-medium text-emerald-100">
+                                    <span className="font-bold text-white">{payer}</span> paid off their debt.
+                                </div>
+                                <div className="text-[10px] text-emerald-400/60 font-mono">
+                                    {formatDate(session.timestamp)}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                             <span className="text-[10px] font-bold px-2 py-1 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 uppercase tracking-wider">
+                                Paid Off
+                             </span>
+                             {onDelete && (
+                                <button 
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onDelete(session.id);
+                                    }}
+                                    className="p-1.5 text-emerald-500/50 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
+                                    title="Delete Record"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                             )}
+                        </div>
+                     </div>
+                 )
+            }
 
             return (
                 <div key={session.id} className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-sm">

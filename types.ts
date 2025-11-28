@@ -17,6 +17,7 @@ export interface SessionRecord {
   id: string;
   timestamp: number;
   opponent: string;
+  type?: 'MATCH' | 'PAYMENT';
   transactions: {
     playerId: string;
     playerName: string;

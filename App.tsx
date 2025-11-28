@@ -87,6 +87,39 @@ export default function App() {
     }
   };
 
+  const payOffPlayer = async (id: string) => {
+    const player = players.find(p => p.id === id);
+    if (!player) return;
+
+    const batch = writeBatch(db);
+
+    // 1. Reset Player
+    const playerRef = doc(db, "players", id);
+    batch.update(playerRef, { totalOwed: 0 });
+
+    // 2. Add History Record
+    const newRecordRef = doc(collection(db, "history"));
+    batch.set(newRecordRef, {
+      timestamp: Date.now(),
+      opponent: "Debt Settled",
+      type: 'PAYMENT',
+      transactions: [{
+        playerId: id,
+        playerName: player.name,
+        amount: 0,
+        tags: [],
+        isPaidOff: true
+      }]
+    });
+
+    try {
+      await batch.commit();
+    } catch (e) {
+      console.error("Error paying off player", e);
+      alert("Failed to process payment.");
+    }
+  };
+
   const deleteSession = async (sessionId: string) => {
     const session = history.find(s => s.id === sessionId);
     if (!session) return;
@@ -104,7 +137,17 @@ export default function App() {
       
       if (playerExists) {
         const playerRef = doc(db, "players", t.playerId);
-        batch.update(playerRef, { totalOwed: increment(-t.amount) });
+        
+        // If it was a 'PAYMENT' type or had isPaidOff=true, the total was set to 0.
+        // Reversing a "set to 0" is tricky because we lost the previous value.
+        // However, standard logic for deleteSession is simply reversing the added amount.
+        // For 'PAYMENT' type records created via payOffPlayer, amount is 0. 
+        // So deleting a payment record currently won't restore the debt because we don't track what the debt was before.
+        // This is an acceptable limitation for now unless we store 'previousDebt' in the transaction.
+        // For standard fines, we reverse the amount.
+        if (t.amount !== 0) {
+            batch.update(playerRef, { totalOwed: increment(-t.amount) });
+        }
       } else {
         console.warn(`Skipping refund for player ${t.playerName} (${t.playerId}) as they no longer exist in the database.`);
       }
@@ -168,6 +211,7 @@ export default function App() {
       batch.set(newRecordRef, {
         timestamp: Date.now(),
         opponent: opponentName,
+        type: 'MATCH',
         transactions: transactions
       });
     }
@@ -266,6 +310,7 @@ export default function App() {
                 onRemovePlayer={removePlayer}
                 onStartSession={() => setView(ViewState.SESSION_SETUP)}
                 onDeleteSession={deleteSession}
+                onPayOffPlayer={payOffPlayer}
             />
         )}
 

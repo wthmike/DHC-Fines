@@ -2,12 +2,33 @@ import React, { useState } from 'react';
 import { Player, SessionRecord } from '../types';
 import { formatCurrency } from '../utils';
 import { HistoryList } from './HistoryList';
-import { Wallet, TrendingUp, AlertCircle, CreditCard, ChevronDown, ChevronUp } from 'lucide-react';
+import { Wallet, TrendingUp, AlertCircle, CreditCard, ChevronDown, ChevronUp, Copy, Check } from 'lucide-react';
 
 interface LeaderboardProps {
   players: Player[];
   history: SessionRecord[];
 }
+
+const CopyButton = ({ text }: { text: string }) => {
+    const [copied, setCopied] = useState(false);
+    
+    const handleCopy = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <button 
+            onClick={handleCopy}
+            className="p-1.5 hover:bg-white/10 rounded-md transition-colors text-orange-200/50 hover:text-white"
+            title="Copy to clipboard"
+        >
+            {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+        </button>
+    );
+};
 
 export const Leaderboard: React.FC<LeaderboardProps> = ({ players, history }) => {
   const [showPayment, setShowPayment] = useState(false);
@@ -63,17 +84,21 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ players, history }) =>
                         <div className="grid grid-cols-2 gap-4 text-sm font-mono text-white/90">
                             <div>
                                 <div className="text-[10px] text-orange-200/60 uppercase mb-0.5">Account Name</div>
-                                <div className="font-semibold text-white">Kev Welsh</div>
+                                <div className="font-semibold text-white">Kevin Welsh</div>
                             </div>
-                            <div className="text-right">
+                            <div className="text-right flex flex-col items-end">
                                 <div className="text-[10px] text-orange-200/60 uppercase mb-0.5">Sort Code</div>
-                                <div className="tracking-widest">04-00-75</div>
+                                <div className="flex items-center gap-2">
+                                    <div className="tracking-widest">04-00-75</div>
+                                    <CopyButton text="04-00-75" />
+                                </div>
                             </div>
                             <div className="col-span-2 bg-white/5 p-3 rounded-lg border border-white/5 flex items-center justify-between">
                                 <div>
                                     <div className="text-[10px] text-orange-200/60 uppercase mb-0.5">Account Number</div>
                                     <div className="tracking-widest text-lg">06149529</div>
                                 </div>
+                                <CopyButton text="06149529" />
                             </div>
                         </div>
                         

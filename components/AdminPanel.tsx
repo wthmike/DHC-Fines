@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Player, SessionRecord } from '../types';
 import { formatCurrency } from '../utils';
 import { HistoryList } from './HistoryList';
-import { Edit2, Save, Play, UserPlus, Trash2, Shield, Lock, ArrowRight, AlertCircle, AlertTriangle } from 'lucide-react';
+import { Edit2, Save, Play, UserPlus, Trash2, Shield, Lock, ArrowRight, AlertCircle, AlertTriangle, Banknote } from 'lucide-react';
 
 interface AdminPanelProps {
   players: Player[];
@@ -13,6 +13,7 @@ interface AdminPanelProps {
   onAddPlayer: (name: string) => void;
   onRemovePlayer: (id: string) => void;
   onDeleteSession: (id: string) => void;
+  onPayOffPlayer: (id: string) => void;
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ 
@@ -23,7 +24,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onStartSession,
   onAddPlayer,
   onRemovePlayer,
-  onDeleteSession
+  onDeleteSession,
+  onPayOffPlayer
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
@@ -251,6 +253,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       {formatCurrency(player.totalOwed)}
                     </span>
                     <div className="flex gap-1">
+                        {player.totalOwed > 0 && (
+                            <button
+                                onClick={() => {
+                                    if(confirm(`Reset debt for ${player.name} to £0.00?`)) onPayOffPlayer(player.id);
+                                }}
+                                className="p-1.5 text-slate-500 hover:text-emerald-400 hover:bg-emerald-400/10 rounded-lg transition-colors"
+                                title="Pay Off Debt"
+                            >
+                                <Banknote className="w-4 h-4" />
+                            </button>
+                        )}
                         <button
                         onClick={() => startEditing(player)}
                         className="p-1.5 text-slate-500 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
