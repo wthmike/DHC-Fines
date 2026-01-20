@@ -84,28 +84,28 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ players, history }) =>
                         <div className="grid grid-cols-2 gap-4 text-sm font-mono text-white/90">
                             <div>
                                 <div className="text-[10px] text-orange-200/60 uppercase mb-0.5">Account Name</div>
-                                <div className="font-semibold text-white">Kevin Welsh</div>
+                                <div className="font-semibold text-white">Michael Dicken</div>
                             </div>
                             <div className="text-right flex flex-col items-end">
                                 <div className="text-[10px] text-orange-200/60 uppercase mb-0.5">Sort Code</div>
                                 <div className="flex items-center gap-2">
-                                    <div className="tracking-widest">04-00-75</div>
-                                    <CopyButton text="04-00-75" />
+                                    <div className="tracking-widest">04-00-03</div>
+                                    <CopyButton text="04-00-03" />
                                 </div>
                             </div>
                             <div className="col-span-2 bg-white/5 p-3 rounded-lg border border-white/5 flex items-center justify-between">
                                 <div>
                                     <div className="text-[10px] text-orange-200/60 uppercase mb-0.5">Account Number</div>
-                                    <div className="tracking-widest text-lg">06149529</div>
+                                    <div className="tracking-widest text-lg">76851045</div>
                                 </div>
-                                <CopyButton text="06149529" />
+                                <CopyButton text="76851045" />
                             </div>
                         </div>
                         
                         <div className="bg-orange-500/10 rounded-lg p-3 text-xs leading-relaxed text-orange-100/90 border border-orange-500/20 flex gap-2">
                             <AlertCircle className="w-4 h-4 flex-shrink-0 text-orange-400 mt-0.5" />
                             <span>
-                                Please use <strong className="text-white font-mono">DHC</strong> in the payment reference and message Kev once paid.
+                                Please use <strong className="text-white font-mono">DHC</strong> in the payment reference and message Mick once paid.
                             </span>
                         </div>
                     </div>
