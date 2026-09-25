@@ -65,20 +65,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   if (!isAuthenticated) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-6 animate-in fade-in duration-300 py-12 max-w-sm mx-auto">
-        <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center shadow-lg border border-slate-200">
-          <Lock className="w-8 h-8 text-amber-600" />
+      <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-5 animate-in fade-in duration-200 py-12 max-w-sm mx-auto">
+        <div className="w-12 h-12 bg-slate-900 rounded-sm flex items-center justify-center shadow-xs">
+          <Lock className="w-6 h-6 text-white" />
         </div>
-        <div className="text-center space-y-1.5">
-          <h2 className="text-2xl font-bold text-slate-900 uppercase tracking-tight font-sans">
+        <div className="text-center space-y-1">
+          <h2 className="text-xl font-bold font-mono text-slate-900 uppercase tracking-tight">
             Admin Vault
           </h2>
           <p className="text-slate-500 text-xs">
-            Enter team administrator password to manage roster, visibility, and debts.
+            Enter team administrator password to manage roster and debts.
           </p>
         </div>
         
-        <form onSubmit={handleLogin} className="w-full space-y-3.5">
+        <form onSubmit={handleLogin} className="w-full space-y-3">
           <div>
             <input
               type="password"
@@ -88,11 +88,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 setError(false);
               }}
               placeholder="Enter Password"
-              className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-amber-500 outline-none text-center tracking-widest font-mono text-base transition-all shadow-sm"
+              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-sm text-slate-900 placeholder-slate-400 focus:border-slate-800 outline-none text-center tracking-widest font-mono text-sm shadow-xs"
               autoFocus
             />
             {error && (
-              <div className="flex items-center justify-center gap-2 text-red-600 text-xs mt-2.5 bg-red-50 py-2 rounded-lg border border-red-200 font-medium">
+              <div className="flex items-center justify-center gap-1.5 text-red-600 text-xs mt-2 bg-red-50 py-1.5 rounded-sm border border-red-200 font-medium">
                 <AlertCircle className="w-3.5 h-3.5" />
                 <span>Incorrect credentials</span>
               </div>
@@ -100,10 +100,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </div>
           <button 
             type="submit"
-            className="w-full bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md shadow-amber-500/20 text-sm"
+            className="w-full bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-sm font-mono font-bold flex items-center justify-center gap-2 transition-colors text-xs uppercase tracking-wider"
           >
             <span>Unlock Vault</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </form>
       </div>
@@ -148,29 +148,27 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   });
 
   return (
-    <div className="space-y-6 max-w-xl mx-auto animate-in fade-in duration-300">
+    <div className="space-y-5 max-w-xl mx-auto animate-in fade-in duration-200">
       
       {/* ------------------------------------------------ */}
       {/* CONFIRMATION MODALS                              */}
       {/* ------------------------------------------------ */}
       {sessionToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center gap-3 text-red-600 mb-1">
-              <div className="p-3 bg-red-50 rounded-2xl border border-red-200">
-                <AlertTriangle className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900">Reverse Session?</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white border border-slate-300 rounded-sm p-5 max-w-sm w-full shadow-lg space-y-3 text-slate-900">
+            <div className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="w-5 h-5" />
+              <h3 className="font-bold text-sm uppercase font-mono">Reverse Session?</h3>
             </div>
             
             <p className="text-slate-600 text-xs leading-relaxed">
-              This will permanently delete this match ledger entry and <strong className="text-red-600">reverse all fines</strong> added to the players' totals.
+              This will permanently delete this match ledger entry and <strong className="text-red-600">reverse all fines</strong> added to players' balances.
             </p>
             
-            <div className="flex gap-3 pt-3">
+            <div className="flex gap-2 pt-2">
               <button 
                 onClick={() => setSessionToDelete(null)}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-semibold text-xs hover:bg-slate-200 transition-colors"
+                className="flex-1 px-3 py-1.5 rounded-sm bg-slate-100 text-slate-700 font-semibold text-xs hover:bg-slate-200"
               >
                 Cancel
               </button>
@@ -179,10 +177,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   onDeleteSession(sessionToDelete);
                   setSessionToDelete(null);
                 }}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white font-bold text-xs hover:bg-red-700 shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                className="flex-1 px-3 py-1.5 rounded-sm bg-red-600 text-white font-bold text-xs hover:bg-red-700 flex items-center justify-center gap-1"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>Delete & Reverse</span>
+                <span>Delete</span>
               </button>
             </div>
           </div>
@@ -190,23 +188,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       )}
 
       {playerToPayOff && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center gap-3 text-emerald-600 mb-1">
-              <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200">
-                <Banknote className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900">Clear Player Debt</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white border border-slate-300 rounded-sm p-5 max-w-sm w-full shadow-lg space-y-3 text-slate-900">
+            <div className="flex items-center gap-2 text-emerald-700">
+              <Banknote className="w-5 h-5" />
+              <h3 className="font-bold text-sm uppercase font-mono">Clear Player Debt</h3>
             </div>
             
             <p className="text-slate-600 text-xs leading-relaxed">
-              Reset <strong className="text-slate-900 font-bold">{playerToPayOff.name}'s</strong> outstanding debt of <strong className="text-emerald-700 font-mono">{formatCurrency(playerToPayOff.totalOwed)}</strong> to £0.00?
+              Reset <strong className="text-slate-900">{playerToPayOff.name}'s</strong> outstanding debt of <strong className="font-mono text-emerald-700">{formatCurrency(playerToPayOff.totalOwed)}</strong> to £0.00?
             </p>
             
-            <div className="flex gap-3 pt-3">
+            <div className="flex gap-2 pt-2">
               <button 
                 onClick={() => setPlayerToPayOff(null)}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-semibold text-xs hover:bg-slate-200 transition-colors"
+                className="flex-1 px-3 py-1.5 rounded-sm bg-slate-100 text-slate-700 font-semibold text-xs hover:bg-slate-200"
               >
                 Cancel
               </button>
@@ -215,7 +211,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   onPayOffPlayer(playerToPayOff.id);
                   setPlayerToPayOff(null);
                 }}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                className="flex-1 px-3 py-1.5 rounded-sm bg-emerald-700 text-white font-bold text-xs hover:bg-emerald-800 flex items-center justify-center gap-1"
               >
                 <Banknote className="w-3.5 h-3.5" />
                 <span>Confirm Paid</span>
@@ -226,23 +222,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       )}
 
       {playerToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center gap-3 text-red-600 mb-1">
-              <div className="p-3 bg-red-50 rounded-2xl border border-red-200">
-                <Trash2 className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900">Remove Player?</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white border border-slate-300 rounded-sm p-5 max-w-sm w-full shadow-lg space-y-3 text-slate-900">
+            <div className="flex items-center gap-2 text-red-600">
+              <Trash2 className="w-5 h-5" />
+              <h3 className="font-bold text-sm uppercase font-mono">Delete Player?</h3>
             </div>
             
             <p className="text-slate-600 text-xs leading-relaxed">
-              Permanently delete <strong className="text-slate-900">{playerToDelete.name}</strong> from the database? If you only want to hide them from the public board while keeping their debt intact, use the <strong className="text-amber-700">Hide</strong> button instead.
+              Permanently delete <strong className="text-slate-900">{playerToDelete.name}</strong> from the database? If you only want to hide them from the public table while keeping fines intact, use <strong className="text-slate-900 font-mono">Hide</strong>.
             </p>
             
-            <div className="flex gap-3 pt-3">
+            <div className="flex gap-2 pt-2">
               <button 
                 onClick={() => setPlayerToDelete(null)}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-semibold text-xs hover:bg-slate-200 transition-colors"
+                className="flex-1 px-3 py-1.5 rounded-sm bg-slate-100 text-slate-700 font-semibold text-xs hover:bg-slate-200"
               >
                 Cancel
               </button>
@@ -251,7 +245,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   onRemovePlayer(playerToDelete.id);
                   setPlayerToDelete(null);
                 }}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white font-bold text-xs hover:bg-red-700 shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                className="flex-1 px-3 py-1.5 rounded-sm bg-red-600 text-white font-bold text-xs hover:bg-red-700 flex items-center justify-center gap-1"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>Delete</span>
@@ -261,171 +255,170 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         </div>
       )}
 
-      {/* Start Session Quick CTA */}
-      <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between gap-4">
+      {/* Start Match Session Button (ONLY HERE IN ADMIN) */}
+      <div className="bg-slate-900 text-white p-4 rounded-sm border border-slate-800 flex items-center justify-between gap-3">
         <div>
-          <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-            <Shield className="w-4 h-4 text-amber-600" />
-            <span>Launch Match Session</span>
-          </h3>
-          <p className="text-slate-500 text-xs mt-0.5">
-            Log today's 25p fines, cards, MOM/DOD & U18 half-price.
+          <div className="text-xs font-mono font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+            <Shield className="w-3.5 h-3.5" />
+            <span>Match Operations</span>
+          </div>
+          <p className="text-slate-400 text-xs mt-0.5">
+            Start new post-match teas fine session.
           </p>
         </div>
         <button
           onClick={onStartSession}
-          className="py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95 transition-all whitespace-nowrap"
+          className="py-2 px-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold text-xs rounded-sm flex items-center gap-1.5 uppercase tracking-wider transition-colors"
         >
           <Play className="w-3.5 h-3.5 fill-current" />
           <span>Start Session</span>
         </button>
       </div>
 
-      {/* Roster Management Card */}
-      <div className="bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-sm">
-        
-        <div className="p-4 border-b border-slate-100 flex flex-wrap justify-between items-center gap-2 bg-slate-50/60">
+      {/* Roster & Visibility Section */}
+      <div className="bg-white border border-slate-200 rounded-sm overflow-hidden shadow-xs">
+        <div className="p-3.5 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between">
           <div>
-            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider font-mono">
-              Team Roster & Visibility
+            <h3 className="text-xs font-mono font-bold text-slate-800 uppercase tracking-wider">
+              Roster & Account Status
             </h3>
             <p className="text-[11px] text-slate-500">
-              Manage players, U18 status, and hide inactive members while keeping fines intact
+              Manage players, U18 flags, and hide from public view
             </p>
           </div>
-          <span className="text-xs text-amber-700 font-mono font-bold bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+          <span className="text-xs font-mono text-slate-500 font-bold">
             {players.length} Total
           </span>
         </div>
 
-        {/* Tabs: All / Visible / Hidden */}
+        {/* Tab Filters */}
         <div className="p-2 border-b border-slate-100 bg-slate-50/40 flex items-center gap-1 text-xs">
           <button
             onClick={() => setRosterTab('all')}
-            className={`px-3 py-1.5 rounded-lg font-semibold transition-colors ${
+            className={`px-2.5 py-1 rounded-sm font-mono text-xs transition-colors ${
               rosterTab === 'all' 
-                ? 'bg-white text-slate-900 shadow-sm' 
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-slate-900 text-white font-semibold' 
+                : 'text-slate-600 hover:text-slate-900 bg-white border border-slate-200'
             }`}
           >
-            All Players ({players.length})
+            All ({players.length})
           </button>
           <button
             onClick={() => setRosterTab('visible')}
-            className={`px-3 py-1.5 rounded-lg font-semibold transition-colors ${
+            className={`px-2.5 py-1 rounded-sm font-mono text-xs transition-colors ${
               rosterTab === 'visible' 
-                ? 'bg-white text-slate-900 shadow-sm' 
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-slate-900 text-white font-semibold' 
+                : 'text-slate-600 hover:text-slate-900 bg-white border border-slate-200'
             }`}
           >
             Visible ({visibleCount})
           </button>
           <button
             onClick={() => setRosterTab('hidden')}
-            className={`px-3 py-1.5 rounded-lg font-semibold transition-colors ${
+            className={`px-2.5 py-1 rounded-sm font-mono text-xs transition-colors ${
               rosterTab === 'hidden' 
-                ? 'bg-white text-slate-900 shadow-sm' 
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-slate-900 text-white font-semibold' 
+                : 'text-slate-600 hover:text-slate-900 bg-white border border-slate-200'
             }`}
           >
-            Hidden from Public ({hiddenCount})
+            Hidden ({hiddenCount})
           </button>
         </div>
 
         {/* Add Player Input */}
-        <div className="p-4 border-b border-slate-100 bg-white">
-          <form onSubmit={handleAddPlayer} className="space-y-3">
+        <div className="p-3.5 border-b border-slate-100 bg-white">
+          <form onSubmit={handleAddPlayer} className="space-y-2.5">
             <div className="flex gap-2">
               <input
                 type="text"
                 value={newPlayerName}
                 onChange={(e) => setNewPlayerName(e.target.value)}
-                placeholder="Add new player name..."
-                className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:ring-2 focus:ring-amber-500 outline-none transition-all font-medium"
+                placeholder="Add player name..."
+                className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-sm text-slate-900 placeholder-slate-400 text-xs focus:bg-white focus:border-slate-400 outline-none font-medium"
               />
               <button 
                 type="submit"
                 disabled={!newPlayerName.trim()}
-                className="bg-amber-500 disabled:bg-slate-200 disabled:text-slate-400 text-white px-4 rounded-xl font-bold text-xs hover:bg-amber-600 transition-colors flex items-center justify-center gap-1 shadow-sm"
+                className="bg-slate-900 disabled:bg-slate-200 disabled:text-slate-400 text-white px-3.5 rounded-sm font-mono text-xs font-bold hover:bg-slate-800 transition-colors flex items-center gap-1"
               >
-                <UserPlus className="w-4 h-4" />
+                <UserPlus className="w-3.5 h-3.5" />
                 <span>Add</span>
               </button>
             </div>
 
-            <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-600">
+            <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-600 font-mono">
               <input
                 type="checkbox"
                 checked={newPlayerIsU18}
                 onChange={(e) => setNewPlayerIsU18(e.target.checked)}
-                className="rounded border-slate-300 text-amber-500 focus:ring-amber-500 w-4 h-4"
+                className="rounded-xs border-slate-300 text-slate-900"
               />
-              <span>Under 18 (Eligible for ½ price fines)</span>
+              <span>Under 18 (½ price fines)</span>
             </label>
           </form>
         </div>
 
-        {/* Player Roster Rows */}
+        {/* Players List */}
         <div className="divide-y divide-slate-100">
           {displayedPlayers.map((player) => (
-            <div key={player.id} className="p-3.5 sm:p-4 flex items-center justify-between hover:bg-slate-50/70 transition-colors">
+            <div key={player.id} className="p-3 flex items-center justify-between hover:bg-slate-50/70 transition-colors">
               
               {editingId === player.id ? (
-                <div className="flex-1 space-y-2 mr-3 animate-in fade-in duration-150">
+                <div className="flex-1 space-y-2 mr-2">
                   <div className="flex gap-2">
                     <input
                       type="text"
                       value={editNameValue}
                       onChange={(e) => setEditNameValue(e.target.value)}
-                      className="flex-1 bg-white border border-amber-500 rounded-lg text-slate-900 px-3 py-1.5 text-sm focus:outline-none"
+                      className="flex-1 bg-white border border-slate-400 rounded-sm text-slate-900 px-2 py-1 text-xs focus:outline-none"
                       placeholder="Player Name"
                       autoFocus
                     />
-                    <div className="flex items-center gap-1 bg-white border border-amber-500 rounded-lg px-2">
+                    <div className="flex items-center gap-1 bg-white border border-slate-400 rounded-sm px-2">
                       <span className="text-slate-400 text-xs font-mono">£</span>
                       <input
                         type="number"
                         step="0.01"
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
-                        className="w-16 bg-transparent text-slate-900 focus:outline-none font-mono text-sm"
+                        className="w-14 bg-transparent text-slate-900 focus:outline-none font-mono text-xs"
                       />
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                    <div className="flex items-center gap-4">
-                      <label className="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1 font-mono text-xs">
+                    <div className="flex items-center gap-3">
+                      <label className="flex items-center gap-1 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={editIsU18}
                           onChange={(e) => setEditIsU18(e.target.checked)}
-                          className="rounded border-slate-300 text-amber-500"
+                          className="rounded-xs border-slate-300"
                         />
                         <span>U18</span>
                       </label>
 
-                      <label className="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                      <label className="flex items-center gap-1 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={editIsHidden}
                           onChange={(e) => setEditIsHidden(e.target.checked)}
-                          className="rounded border-slate-300 text-amber-500"
+                          className="rounded-xs border-slate-300"
                         />
-                        <span>Hide from public</span>
+                        <span>Hide</span>
                       </label>
                     </div>
 
-                    <div className="flex gap-1.5">
+                    <div className="flex gap-1">
                       <button
                         onClick={() => saveEdit(player.id)}
-                        className="py-1 px-3 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 flex items-center gap-1 shadow-sm"
+                        className="py-1 px-2.5 bg-slate-900 text-white rounded-sm text-xs font-bold hover:bg-slate-800 flex items-center gap-1"
                       >
-                        <Save className="w-3.5 h-3.5" /> Save
+                        <Save className="w-3 h-3" /> Save
                       </button>
                       <button
                         onClick={() => setEditingId(null)}
-                        className="py-1 px-2.5 bg-slate-100 text-slate-600 rounded-lg text-xs hover:text-slate-900"
+                        className="py-1 px-2 bg-slate-100 text-slate-600 rounded-sm text-xs hover:text-slate-900"
                       >
                         Cancel
                       </button>
@@ -434,41 +427,41 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </div>
               ) : (
                 <>
-                  <div className="min-w-0 pr-3">
+                  <div className="min-w-0 pr-2">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`font-bold text-sm ${player.isHidden ? 'text-slate-400 line-through' : 'text-slate-900'}`}>
+                      <span className={`font-semibold text-sm ${player.isHidden ? 'text-slate-400 line-through' : 'text-slate-900'}`}>
                         {player.name}
                       </span>
                       {player.isU18 && (
-                        <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 font-mono">
+                        <span className="text-[10px] font-mono text-amber-800 bg-amber-50 px-1.5 py-0.2 rounded-sm border border-amber-200">
                           U18
                         </span>
                       )}
                       {player.isHidden && (
-                        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200 font-mono flex items-center gap-1">
-                          <EyeOff className="w-3 h-3" /> Hidden from Public
+                        <span className="text-[10px] font-mono text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded-sm border border-slate-200 flex items-center gap-1">
+                          <EyeOff className="w-3 h-3" /> Hidden
                         </span>
                       )}
                     </div>
                     <div className="text-[11px] text-slate-500 font-mono mt-0.5">
-                      {formatCurrency(player.totalOwed)} owed {player.isHidden && '(kept safe in database)'}
+                      {formatCurrency(player.totalOwed)} owed {player.isHidden && '(retained in ledger)'}
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    {/* HIDE / UNHIDE BUTTON (The feature requested by user) */}
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    {/* HIDE / UNHIDE BUTTON */}
                     <button
                       onClick={() => onToggleHidePlayer(player.id, !player.isHidden)}
-                      className={`py-1 px-2.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
+                      className={`py-1 px-2 rounded-sm text-xs font-mono font-semibold flex items-center gap-1 transition-colors ${
                         player.isHidden 
                           ? 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100' 
                           : 'bg-slate-100 text-slate-600 border border-slate-200 hover:text-slate-900 hover:bg-slate-200'
                       }`}
-                      title={player.isHidden ? "Unhide player to show on public leaderboard" : "Hide player from public leaderboard (fines stay intact)"}
+                      title={player.isHidden ? "Unhide player from public view" : "Hide player from public table"}
                     >
                       {player.isHidden ? (
                         <>
-                          <Eye className="w-3.5 h-3.5 text-amber-600" />
+                          <Eye className="w-3.5 h-3.5" />
                           <span>Unhide</span>
                         </>
                       ) : (
@@ -482,26 +475,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     {player.totalOwed > 0 && (
                       <button
                         onClick={() => setPlayerToPayOff(player)}
-                        className="py-1 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all"
-                        title="Mark as paid"
+                        className="py-1 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-sm text-xs font-mono font-semibold flex items-center gap-1"
+                        title="Mark paid"
                       >
-                        <Banknote className="w-3.5 h-3.5 text-emerald-600" />
+                        <Banknote className="w-3.5 h-3.5" />
                         <span className="hidden sm:inline">Settle</span>
                       </button>
                     )}
 
                     <button
                       onClick={() => startEditing(player)}
-                      className="p-1.5 text-slate-400 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors"
-                      title="Edit player"
+                      className="p-1 text-slate-400 hover:text-slate-800 rounded-sm hover:bg-slate-100"
+                      title="Edit"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
 
                     <button
                       onClick={() => setPlayerToDelete(player)}
-                      className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Delete player permanently"
+                      className="p-1 text-slate-400 hover:text-red-600 rounded-sm hover:bg-red-50"
+                      title="Delete permanently"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -512,19 +505,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           ))}
 
           {displayedPlayers.length === 0 && (
-            <div className="p-8 text-center text-slate-400 text-sm">
-              No players found in this category.
+            <div className="p-6 text-center text-slate-400 text-xs font-mono">
+              No players found in this view.
             </div>
           )}
         </div>
       </div>
 
       {/* History Management */}
-      <div className="pt-2">
-        <h3 className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 px-1 font-mono">
-          Manage Match Ledgers
+      <div className="pt-1">
+        <h3 className="text-xs font-mono font-bold text-slate-600 uppercase tracking-wider mb-2 px-1">
+          Audit & Reversal
         </h3>
-        <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden p-4 shadow-sm">
+        <div className="bg-white border border-slate-200 rounded-sm overflow-hidden p-3 shadow-xs">
           <HistoryList history={history} onDelete={(id) => setSessionToDelete(id)} />
         </div>
       </div>

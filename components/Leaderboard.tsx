@@ -4,9 +4,10 @@ import { formatCurrency } from '../utils';
 import { BANKING_DETAILS } from '../constants';
 import { HistoryList } from './HistoryList';
 import { Rulebook } from './Rulebook';
+import { PlayerFineSearch } from './PlayerFineSearch';
 import { 
-  Wallet, TrendingUp, AlertCircle, CreditCard, 
-  ChevronDown, ChevronUp, Copy, Check, BookOpen, X
+  CreditCard, ChevronDown, ChevronUp, Copy, Check, 
+  BookOpen, X, AlertCircle, MessageCircle, ArrowUpRight
 } from 'lucide-react';
 
 interface LeaderboardProps {
@@ -14,7 +15,7 @@ interface LeaderboardProps {
   history: SessionRecord[];
 }
 
-const CopyButton = ({ text }: { text: string }) => {
+const CopyButton = ({ text, light = false }: { text: string; light?: boolean }) => {
   const [copied, setCopied] = useState(false);
   
   const handleCopy = (e: React.MouseEvent) => {
@@ -27,10 +28,18 @@ const CopyButton = ({ text }: { text: string }) => {
   return (
     <button 
       onClick={handleCopy}
-      className="p-1 hover:bg-white/20 rounded-md transition-colors text-orange-100 hover:text-white"
+      className={`p-1 rounded-xs transition-colors ${
+        light 
+          ? 'hover:bg-white/20 text-white/80 hover:text-white' 
+          : 'hover:bg-slate-100 text-slate-400 hover:text-slate-800'
+      }`}
       title="Copy to clipboard"
     >
-      {copied ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
+      {copied ? (
+        <Check className={`w-3.5 h-3.5 ${light ? 'text-amber-200' : 'text-emerald-600'}`} />
+      ) : (
+        <Copy className="w-3.5 h-3.5" />
+      )}
     </button>
   );
 };
@@ -43,183 +52,206 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ players, history }) =>
   const visiblePlayers = players.filter(p => !p.isHidden);
   const sortedPlayers = [...visiblePlayers].sort((a, b) => b.totalOwed - a.totalOwed);
   const totalDebt = sortedPlayers.reduce((sum, p) => sum + p.totalOwed, 0);
+  const activeDebtorsCount = sortedPlayers.filter(p => p.totalOwed > 0).length;
+
+  const whatsAppPaymentLink = (() => {
+    const message = encodeURIComponent(
+      `Hi Mick, just transferred my Duchy HC fines to the account (ref: DHC). Cheers!`
+    );
+    return `https://wa.me/?text=${message}`;
+  })();
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-200">
       
       {/* ------------------------------------------------ */}
-      {/* TOTAL POT / DUCHY BANK CARD                      */}
+      {/* CLEAN ORANGE BANKING APP HERO CARD               */}
       {/* ------------------------------------------------ */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-amber-500 via-orange-500 to-red-600 rounded-3xl shadow-xl shadow-orange-500/15 text-white border border-white/20">
+      <div className="rounded-xs bg-[#ff5500] text-white shadow-md p-5 sm:p-6 space-y-4">
         
-        {/* Soft background lighting */}
-        <div className="absolute top-0 right-0 -mr-10 -mt-10 w-44 h-44 bg-white/15 rounded-full blur-2xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 -ml-10 -mb-10 w-36 h-36 bg-black/10 rounded-full blur-xl pointer-events-none" />
-        
-        <div className="relative z-10 p-6 sm:p-7">
-          <div className="flex justify-between items-start mb-6">
-            <div className="flex items-center gap-2 text-orange-100 text-xs font-bold uppercase tracking-widest font-sans">
-              <Wallet className="w-4 h-4" />
-              <span>Team Pot</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowRulesModal(true)}
-                className="bg-black/15 hover:bg-black/25 backdrop-blur-md rounded-full px-2.5 py-1 text-xs font-semibold text-white/90 border border-white/20 flex items-center gap-1 transition-colors"
-                title="View Rules"
-              >
-                <BookOpen className="w-3.5 h-3.5" />
-                <span>Rules</span>
-              </button>
-              <div className="bg-white/20 backdrop-blur-md rounded-full px-3 py-1 text-xs font-bold text-white tracking-wide border border-white/20">
-                DUCHY M1
-              </div>
-            </div>
+        {/* Top Header Row */}
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-mono font-bold uppercase tracking-wider text-orange-100">
+            Duchy HC Treasury
+          </span>
+
+          <button
+            onClick={() => setShowRulesModal(true)}
+            className="px-2.5 py-1 text-xs font-mono font-medium text-white hover:bg-black/20 bg-black/10 rounded-xs border border-white/20 flex items-center gap-1.5 transition-colors"
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>Rules</span>
+          </button>
+        </div>
+
+        {/* Money Display */}
+        <div>
+          <div className="text-xs font-medium text-orange-100 uppercase tracking-wider">
+            Total Outstanding Fines
           </div>
-          
-          <div className="mb-2">
-            <div className="text-5xl sm:text-6xl font-sans font-extrabold tracking-tight text-white tabular-nums">
-              {formatCurrency(totalDebt)}
-            </div>
-            <div className="text-orange-100 text-sm flex items-center gap-1.5 font-medium mt-1">
-              <TrendingUp className="w-3.5 h-3.5" />
-              <span>Outstanding balance</span>
-            </div>
+          <div className="text-4xl sm:text-5xl font-mono font-bold tracking-tight text-white mt-1 tabular-nums">
+            {formatCurrency(totalDebt)}
+          </div>
+          <div className="text-xs text-orange-100/90 mt-1 font-mono">
+            {activeDebtorsCount} {activeDebtorsCount === 1 ? 'player has' : 'players have'} outstanding fines
           </div>
         </div>
 
-        {/* Payment Details Collapsible Drawer */}
-        <div className={`bg-black/15 backdrop-blur-sm border-t border-white/15 transition-all duration-200 ${showPayment ? 'bg-black/25' : 'hover:bg-black/20'}`}>
-          <button 
+        {/* Pay Fines Button */}
+        <div>
+          <button
             onClick={() => setShowPayment(!showPayment)}
-            className="w-full px-6 py-3.5 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-orange-100 hover:text-white transition-colors"
+            className="w-full py-2.5 px-4 bg-slate-950 hover:bg-black text-white text-xs font-mono font-bold uppercase tracking-wider rounded-xs flex items-center justify-between transition-colors shadow-sm"
           >
             <span className="flex items-center gap-2">
-              <CreditCard className="w-4 h-4" />
-              Make a Payment (Bank Transfer)
+              <CreditCard className="w-4 h-4 text-orange-400" />
+              <span>Pay Fines</span>
             </span>
-            {showPayment ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            <div className="flex items-center gap-1 text-[11px] text-slate-300">
+              <span>{showPayment ? 'Hide Bank Details' : 'View Bank Details'}</span>
+              {showPayment ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            </div>
           </button>
+        </div>
 
-          {showPayment && (
-            <div className="px-6 pb-6 space-y-4 animate-in slide-in-from-top-2 fade-in duration-200">
-              <div className="grid grid-cols-2 gap-3 text-sm font-mono text-white">
-                <div className="bg-white/10 p-3 rounded-xl border border-white/10">
-                  <div className="text-[10px] text-orange-100/70 uppercase">Account Name</div>
-                  <div className="font-bold text-white mt-0.5 truncate">{BANKING_DETAILS.accountName}</div>
-                </div>
-
-                <div className="bg-white/10 p-3 rounded-xl border border-white/10 flex items-center justify-between">
-                  <div>
-                    <div className="text-[10px] text-orange-100/70 uppercase">Sort Code</div>
-                    <div className="font-bold text-white mt-0.5 tracking-wider">{BANKING_DETAILS.sortCode}</div>
-                  </div>
-                  <CopyButton text={BANKING_DETAILS.sortCode} />
-                </div>
-
-                <div className="col-span-2 bg-white/10 p-3 rounded-xl border border-white/10 flex items-center justify-between">
-                  <div>
-                    <div className="text-[10px] text-orange-100/70 uppercase">Account Number</div>
-                    <div className="font-bold text-white text-base tracking-wider mt-0.5">{BANKING_DETAILS.accountNumber}</div>
-                  </div>
-                  <CopyButton text={BANKING_DETAILS.accountNumber} />
-                </div>
+        {/* Bank details completely hidden behind Pay */}
+        {showPayment && (
+          <div className="pt-3 border-t border-orange-400/30 space-y-2.5 font-mono text-xs">
+            <div className="bg-black/20 p-2.5 rounded-xs border border-white/10 flex items-center justify-between">
+              <div>
+                <span className="text-orange-200/80 text-[10px] block uppercase">Payee Name</span>
+                <span className="font-bold text-white text-sm">{BANKING_DETAILS.accountName}</span>
               </div>
-              
-              <div className="bg-white/10 rounded-xl p-3 text-xs leading-relaxed text-orange-50 border border-white/10 flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 text-orange-200 mt-0.5" />
-                <span>
-                  Please use <strong className="text-white font-mono bg-white/20 px-1 py-0.5 rounded">DHC</strong> in the payment reference and message Mick once paid.
-                </span>
+              <CopyButton text={BANKING_DETAILS.accountName} light />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="bg-black/20 p-2.5 rounded-xs border border-white/10 flex items-center justify-between">
+                <div>
+                  <span className="text-orange-200/80 text-[10px] block uppercase">Sort Code</span>
+                  <span className="font-bold text-white tracking-wider">{BANKING_DETAILS.sortCode}</span>
+                </div>
+                <CopyButton text={BANKING_DETAILS.sortCode} light />
+              </div>
+
+              <div className="bg-black/20 p-2.5 rounded-xs border border-white/10 flex items-center justify-between">
+                <div>
+                  <span className="text-orange-200/80 text-[10px] block uppercase">Account No.</span>
+                  <span className="font-bold text-white tracking-wider">{BANKING_DETAILS.accountNumber}</span>
+                </div>
+                <CopyButton text={BANKING_DETAILS.accountNumber} light />
               </div>
             </div>
-          )}
-        </div>
+
+            <div className="bg-black/20 p-2.5 rounded-xs border border-white/10 flex items-center justify-between">
+              <div>
+                <span className="text-orange-200/80 text-[10px] block uppercase">Reference</span>
+                <span className="font-bold text-white tracking-wider">{BANKING_DETAILS.reference}</span>
+              </div>
+              <CopyButton text={BANKING_DETAILS.reference} light />
+            </div>
+
+            <div className="pt-1 flex flex-col gap-2">
+              <div className="text-[11px] text-orange-100 flex items-center gap-1.5 font-sans">
+                <AlertCircle className="w-3.5 h-3.5 text-orange-200 flex-shrink-0" />
+                <span>Reference <strong className="text-white font-mono">DHC</strong> and message Mick when sent.</span>
+              </div>
+
+              <a
+                href={whatsAppPaymentLink}
+                target="_blank"
+                rel="noreferrer"
+                className="w-full py-2 bg-[#25D366] hover:bg-[#20ba59] text-slate-950 font-mono font-bold rounded-xs text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+              >
+                <MessageCircle className="w-3.5 h-3.5 fill-current" />
+                <span>Message Mick on WhatsApp</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </a>
+            </div>
+          </div>
+        )}
 
       </div>
 
       {/* ------------------------------------------------ */}
-      {/* ACTIVE DEBTS LIST                                */}
+      {/* SQUAD LEDGER TABLE (SHARP EDGES, NO PAY BUTTONS) */}
       {/* ------------------------------------------------ */}
-      <div>
-        <div className="flex items-center justify-between mb-3 px-1">
-          <h2 className="text-slate-500 text-xs font-bold uppercase tracking-wider font-sans">
-            Active Debts
+      <div className="space-y-2">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-slate-500 text-xs font-mono font-bold uppercase tracking-wider">
+            Active Accounts
           </h2>
           <span className="text-xs text-slate-400 font-mono">
-            {sortedPlayers.length} Players
+            {sortedPlayers.length} Members
           </span>
         </div>
 
-        <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-xs divide-y divide-slate-100">
+        <div className="bg-white border border-slate-200 rounded-xs overflow-hidden shadow-xs divide-y divide-slate-100">
           {sortedPlayers.map((player, index) => (
             <div 
               key={player.id} 
-              className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors group"
+              className="p-3 flex items-center justify-between hover:bg-slate-50/70 transition-colors"
             >
-              <div className="flex items-center gap-3.5">
-                <span className={`
-                  w-8 h-8 flex items-center justify-center rounded-xl font-bold text-xs font-mono
-                  ${index === 0 && player.totalOwed > 0 
-                    ? 'bg-amber-100 text-amber-800 border border-amber-200' 
-                    : index === 1 && player.totalOwed > 0 
-                      ? 'bg-slate-100 text-slate-700 border border-slate-200' 
-                      : index === 2 && player.totalOwed > 0 
-                        ? 'bg-orange-100 text-orange-800 border border-orange-200' 
-                        : 'text-slate-400 bg-slate-50 border border-slate-100'}
-                `}>
-                  {index + 1}
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="w-5 text-center font-mono text-xs font-semibold text-slate-400">
+                  {String(index + 1).padStart(2, '0')}
                 </span>
 
-                <div>
+                <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-slate-900 block text-base group-hover:text-amber-700 transition-colors">
+                    <span className="font-bold text-slate-900 text-sm truncate">
                       {player.name}
                     </span>
                     {player.isU18 && (
-                      <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.2 rounded-full border border-amber-200 font-mono">
-                        U18 (½ Price)
+                      <span className="text-[10px] font-mono text-amber-800 bg-amber-50 px-1.5 py-0.2 rounded-xs border border-amber-200 font-medium">
+                        U18
                       </span>
                     )}
                     {player.totalOwed >= 10 && (
-                      <div className="flex items-center gap-1 text-[10px] font-bold text-red-700 bg-red-50 px-2 py-0.2 rounded-full border border-red-200 font-mono">
-                        <AlertCircle className="w-3 h-3" /> HIGH
-                      </div>
+                      <span className="text-[10px] font-mono text-red-700 bg-red-50 px-1.5 py-0.2 rounded-xs border border-red-200 font-medium">
+                        Arrears
+                      </span>
                     )}
                   </div>
                 </div>
               </div>
 
-              <span className={`font-mono font-bold text-lg tracking-tight tabular-nums ${
-                player.totalOwed > 0 ? 'text-red-600' : 'text-emerald-600'
-              }`}>
-                {formatCurrency(player.totalOwed)}
-              </span>
+              {/* Just the outstanding balance - NO pay button next to each person */}
+              <div className="flex items-center">
+                <span className={`font-mono font-bold text-base tabular-nums ${
+                  player.totalOwed > 0 ? 'text-red-600' : 'text-emerald-700'
+                }`}>
+                  {formatCurrency(player.totalOwed)}
+                </span>
+              </div>
             </div>
           ))}
 
           {sortedPlayers.length === 0 && (
-            <div className="p-8 text-center text-slate-400 text-sm">
-              No players found. Add players in Settings.
+            <div className="p-8 text-center text-slate-400 text-sm font-mono">
+              No registered players found.
             </div>
           )}
         </div>
       </div>
 
-      {/* Match History */}
+      {/* ------------------------------------------------ */}
+      {/* PLAYER STATEMENT SEARCH (SEARCH NAME & SEE FINES) */}
+      {/* ------------------------------------------------ */}
+      <PlayerFineSearch players={players} history={history} />
+
+      {/* Match History Ledger */}
       <HistoryList history={history} />
 
-      {/* ------------------------------------------------ */}
-      {/* RULES MODAL                                      */}
-      {/* ------------------------------------------------ */}
+      {/* Rules Modal */}
       {showRulesModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-slate-50 rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-4 sm:p-6 relative no-scrollbar">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-slate-50 rounded-xs max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-xl p-4 sm:p-6 relative no-scrollbar border border-slate-300">
             <button
               onClick={() => setShowRulesModal(false)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-800 bg-white rounded-full border border-slate-200 shadow-sm transition-colors z-20"
+              className="absolute top-4 right-4 p-1.5 text-slate-500 hover:text-slate-900 bg-white rounded-xs border border-slate-200 transition-colors z-20"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
             <Rulebook />
           </div>

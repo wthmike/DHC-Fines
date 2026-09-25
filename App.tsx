@@ -269,14 +269,13 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-amber-500 selection:text-white">
       
       {/* Clean Light-Mode Navbar */}
-      <nav className="bg-white/80 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-20 shadow-xs">
-        <div className="max-w-md mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {/* Square Orange Logo akin to Deutsche Bank */}
-            <div className="w-9 h-9 bg-amber-500 rounded-lg flex items-center justify-center text-white font-bold shadow-md shadow-amber-500/20">
-              <span className="font-serif italic text-xl">D</span>
+      <nav className="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-xs">
+        <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xs flex items-center justify-center text-white font-mono font-bold text-xs shadow-xs">
+              D
             </div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-900 font-serif">
+            <h1 className="text-base font-bold tracking-tight text-slate-900 font-mono uppercase">
               DuchyBank
             </h1>
           </div>
@@ -285,18 +284,18 @@ export default function App() {
             {view === ViewState.ADMIN_PANEL ? (
               <button 
                 onClick={() => setView(ViewState.LEADERBOARD)}
-                className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl flex items-center gap-1.5 text-sm font-semibold transition-colors"
+                className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-sm flex items-center gap-1.5 text-xs font-mono font-semibold transition-colors"
               >
-                <ArrowLeft className="w-4 h-4" /> <span>Back</span>
+                <ArrowLeft className="w-3.5 h-3.5" /> <span>Back</span>
               </button>
             ) : (
               <button 
                 onClick={() => setView(ViewState.ADMIN_PANEL)}
-                className="p-2.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors"
+                className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-sm transition-colors"
                 aria-label="Admin Settings"
                 title="Admin Settings"
               >
-                <Settings className="w-5 h-5" />
+                <Settings className="w-4 h-4" />
               </button>
             )}
           </div>

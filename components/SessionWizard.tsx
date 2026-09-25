@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Player, SessionData, PlayerSessionState } from '../types';
 import { formatCurrency, calculatePlayerFines } from '../utils';
-import { DuchyCrest } from './DuchyCrest';
 import { 
   Check, ArrowLeft, Gavel, CreditCard, RotateCcw, 
   Triangle, Square, Circle, PackageCheck, PackageX,
   Trophy, ThumbsDown, Plus, Minus, ArrowRight, ShieldAlert,
-  Sparkles, CheckCircle2, Percent
+  Percent
 } from 'lucide-react';
 
 interface SessionWizardProps {
@@ -130,7 +129,7 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
     }
   };
 
-  // The U18 toggle requested by user for the finishing screen
+  // U18 toggle on the finishing screen
   const toggleU18 = (id: string) => {
     const current = sessionData[id];
     if (!current) return;
@@ -149,7 +148,6 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
     updatePlayerSessionState(id, { isPaidOff: !current.isPaidOff });
   };
 
-  // Voting logic
   const handleVoteChange = (type: 'MOTM' | 'DOTD', playerId: string, delta: number) => {
     const setVotes = type === 'MOTM' ? setMotmVotes : setDotdVotes;
     setVotes(prev => {
@@ -207,7 +205,6 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
     .filter(Boolean)
     .join(', ');
 
-  // Totals for finishing screen
   const totalSessionGross = Array.from(selectedPlayerIds).reduce((acc, id) => {
     const data = sessionData[id];
     if (!data) return acc;
@@ -235,65 +232,63 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
   // ----------------------------------------------------
   if (step === 'SELECT') {
     return (
-      <div className="flex flex-col h-full animate-in fade-in duration-300 max-w-xl mx-auto">
-        <div className="mb-6 flex items-center justify-between">
+      <div className="flex flex-col h-full animate-in fade-in duration-200 max-w-xl mx-auto">
+        <div className="mb-5 flex items-center justify-between">
           <button 
             onClick={onCancel} 
-            className="text-slate-500 flex items-center gap-1.5 hover:text-slate-900 transition-colors text-sm font-semibold py-1 px-2.5 rounded-lg hover:bg-slate-100"
+            className="text-slate-600 flex items-center gap-1 hover:text-slate-900 transition-colors text-xs font-mono font-semibold py-1 px-2 rounded-sm hover:bg-slate-100"
           >
-            <ArrowLeft className="w-4 h-4" /> Cancel
+            <ArrowLeft className="w-3.5 h-3.5" /> Cancel
           </button>
-          <span className="text-[11px] font-mono uppercase tracking-wider text-amber-800 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 font-bold">
-            Step 1 of 4
+          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-600 bg-slate-100 px-2 py-0.5 rounded-sm font-semibold">
+            Stage 01 / 04
           </span>
         </div>
 
-        <div className="mb-6">
-          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight font-sans">
-            Post-Match Fines
+        <div className="mb-4">
+          <h2 className="text-xl font-mono font-bold text-slate-900 uppercase tracking-tight">
+            Squad & Fixture
           </h2>
-          <p className="text-slate-500 text-sm mt-1">
-            Select today's squad and enter the opponent name.
+          <p className="text-slate-500 text-xs mt-0.5">
+            Select squad members and specify the opposing club.
           </p>
         </div>
 
         {/* Match Fixture Input */}
-        <div className="mb-6 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-          <label className="block text-xs font-bold text-amber-700 uppercase tracking-wider font-mono">
-            Match Fixture
+        <div className="mb-4 bg-white p-3.5 rounded-sm border border-slate-200 shadow-xs space-y-2">
+          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">
+            Fixture Opponent
           </label>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-slate-800 font-bold text-sm bg-slate-50 px-3 py-2.5 rounded-xl border border-slate-200 whitespace-nowrap">
-              <DuchyCrest className="w-5 h-5 flex-shrink-0" />
-              <span>Duchy M1s</span>
-              <span className="text-amber-600 font-serif italic font-normal">vs</span>
+          <div className="flex items-center gap-2">
+            <div className="text-slate-700 font-mono text-xs bg-slate-100 px-2.5 py-1.5 rounded-sm font-semibold whitespace-nowrap">
+              Duchy M1s vs
             </div>
             <input 
               type="text" 
               value={opponentName}
               onChange={(e) => setOpponentName(e.target.value)}
               placeholder="Opponent name (e.g. Truro, Penzance)..."
-              className="flex-1 bg-white border border-slate-300 text-slate-900 px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all placeholder-slate-400 text-sm font-medium shadow-sm"
+              className="flex-1 bg-white border border-slate-200 text-slate-900 px-3 py-1.5 rounded-sm focus:border-slate-800 outline-none text-xs font-medium"
               autoFocus
             />
           </div>
         </div>
 
         {/* Squad Selection Header */}
-        <div className="flex items-center justify-between mb-3 px-1">
-          <div className="text-xs font-bold text-slate-600 uppercase tracking-wider font-mono">
-            Matchday Squad ({selectedPlayerIds.size} of {allPlayers.length} selected)
+        <div className="flex items-center justify-between mb-2 px-1">
+          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">
+            Squad Roster ({selectedPlayerIds.size} of {allPlayers.length})
           </div>
-          <div className="flex gap-2 text-xs">
+          <div className="flex gap-1.5 text-xs font-mono">
             <button
               onClick={selectAllVisible}
-              className="text-amber-800 hover:text-amber-900 font-semibold px-2 py-1 rounded bg-amber-50 hover:bg-amber-100 transition-colors border border-amber-200/60"
+              className="text-slate-700 hover:text-slate-900 px-2 py-0.5 rounded-sm bg-slate-100 hover:bg-slate-200 transition-colors text-[11px]"
             >
               Select Active
             </button>
             <button
               onClick={clearSelection}
-              className="text-slate-600 hover:text-slate-900 font-semibold px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 transition-colors"
+              className="text-slate-500 hover:text-slate-800 px-2 py-0.5 rounded-sm hover:bg-slate-100 transition-colors text-[11px]"
             >
               Clear
             </button>
@@ -301,43 +296,43 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
         </div>
 
         {/* Players List */}
-        <div className="flex-1 overflow-y-auto bg-white rounded-2xl border border-slate-200 mb-24 no-scrollbar divide-y divide-slate-100 shadow-sm">
+        <div className="flex-1 overflow-y-auto bg-white rounded-sm border border-slate-200 mb-20 no-scrollbar divide-y divide-slate-100 shadow-xs">
           {allPlayers.map(player => {
             const isSelected = selectedPlayerIds.has(player.id);
             return (
               <div 
                 key={player.id}
                 onClick={() => togglePlayerSelection(player.id)}
-                className={`p-4 flex items-center justify-between cursor-pointer transition-all ${
-                  isSelected ? 'bg-amber-50/70 hover:bg-amber-50' : 'hover:bg-slate-50'
+                className={`p-3 flex items-center justify-between cursor-pointer transition-colors ${
+                  isSelected ? 'bg-slate-50' : 'hover:bg-slate-50/50'
                 }`}
               >
-                <div className="flex items-center gap-3.5">
-                  <div className={`w-5 h-5 rounded-md flex items-center justify-center transition-colors ${
-                    isSelected ? 'bg-amber-500 text-white shadow-sm' : 'bg-white border border-slate-300'
+                <div className="flex items-center gap-2.5">
+                  <div className={`w-4 h-4 rounded-xs flex items-center justify-center transition-colors ${
+                    isSelected ? 'bg-slate-900 text-white' : 'bg-white border border-slate-300'
                   }`}>
-                    {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                    {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
                   </div>
                   <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`font-semibold text-sm ${isSelected ? 'text-slate-900' : 'text-slate-600'}`}>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`text-xs font-semibold ${isSelected ? 'text-slate-900' : 'text-slate-600'}`}>
                         {player.name}
                       </span>
                       {player.isU18 && (
-                        <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 font-mono">
+                        <span className="text-[9px] font-mono text-amber-800 bg-amber-50 px-1 rounded-xs border border-amber-200">
                           U18
                         </span>
                       )}
                       {player.isHidden && (
-                        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded font-mono">
-                          (Hidden)
+                        <span className="text-[9px] font-mono text-slate-400 bg-slate-100 px-1 rounded-xs">
+                          Hidden
                         </span>
                       )}
                     </div>
                   </div>
                 </div>
 
-                <div className="text-right font-mono text-sm">
+                <div className="font-mono text-xs">
                   <span className={player.totalOwed > 0 ? 'text-red-600 font-bold' : 'text-slate-400'}>
                     {formatCurrency(player.totalOwed)}
                   </span>
@@ -348,15 +343,15 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
         </div>
 
         {/* Floating Bottom Action */}
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-50 via-slate-50 to-slate-50/0 z-20">
+        <div className="fixed bottom-0 left-0 right-0 p-3 bg-white border-t border-slate-200 z-20">
           <div className="max-w-xl mx-auto">
             <button
               onClick={() => setStep('VOTING')}
               disabled={selectedPlayerIds.size === 0 || !opponentName.trim()}
-              className="w-full bg-amber-500 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed hover:bg-amber-600 text-white py-3.5 rounded-xl font-bold text-base shadow-lg shadow-amber-500/20 transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+              className="w-full bg-slate-900 disabled:bg-slate-200 disabled:text-slate-400 hover:bg-slate-800 text-white py-2.5 rounded-sm font-mono font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
             >
-              <span>Next: Post-Match Voting</span>
-              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+              <span>Next: Post-Match Honors</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -375,7 +370,7 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
       type: 'MOTM' | 'DOTD', 
       votes: Record<string, number>, 
       perkText: string,
-      color: 'emerald' | 'amber'
+      isMotm: boolean
     ) => {
       const candidates = Object.entries(votes)
         .filter(([id]) => selectedPlayerIds.has(id))
@@ -383,38 +378,27 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
       const maxVotes = Math.max(...candidates.map(([, c]) => c), 0);
 
       return (
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden mb-6 shadow-sm">
-          <div className={`p-4 border-b border-slate-100 flex items-center justify-between ${
-            color === 'emerald' ? 'bg-emerald-50/60' : 'bg-amber-50/60'
-          }`}>
-            <div className="flex items-center gap-2.5">
-              {type === 'MOTM' ? (
-                <Trophy className="w-5 h-5 text-emerald-600" />
+        <div className="bg-white rounded-sm border border-slate-200 overflow-hidden mb-4 shadow-xs">
+          <div className="p-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+            <div className="flex items-center gap-2">
+              {isMotm ? (
+                <Trophy className="w-4 h-4 text-emerald-700" />
               ) : (
-                <ThumbsDown className="w-5 h-5 text-amber-600" />
+                <ThumbsDown className="w-4 h-4 text-amber-700" />
               )}
-              <div>
-                <h3 className="font-bold text-slate-900 uppercase tracking-wider text-sm">
-                  {title}
-                </h3>
-                <p className="text-[11px] text-slate-500">
-                  {type === 'MOTM' ? "Played above & beyond usual level" : "Did something daft"}
-                </p>
-              </div>
+              <h3 className="font-mono font-bold text-slate-900 uppercase tracking-wider text-xs">
+                {title}
+              </h3>
             </div>
-            <span className={`text-[11px] font-bold font-mono px-2.5 py-0.5 rounded-full border ${
-              color === 'emerald' 
-                ? 'bg-emerald-100 text-emerald-800 border-emerald-200' 
-                : 'bg-amber-100 text-amber-800 border-amber-200'
-            }`}>
+            <span className="text-[10px] font-mono font-bold text-slate-700 bg-white px-2 py-0.5 rounded-xs border border-slate-200">
               {perkText}
             </span>
           </div>
 
-          <div className="p-4 space-y-4">
+          <div className="p-3 space-y-3">
             <div className="relative">
               <select 
-                className="w-full bg-slate-50 border border-slate-200 text-slate-800 py-2.5 px-3.5 rounded-xl appearance-none focus:ring-2 focus:ring-amber-500 outline-none text-sm font-medium"
+                className="w-full bg-slate-50 border border-slate-200 text-slate-800 py-1.5 px-3 rounded-sm appearance-none focus:border-slate-800 outline-none text-xs font-mono font-medium"
                 onChange={(e) => {
                   addNominee(type, e.target.value);
                   e.target.value = '';
@@ -429,56 +413,52 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
                     <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
               </select>
-              <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                <Plus className="w-4 h-4" />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                <Plus className="w-3.5 h-3.5" />
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {candidates.map(([id, count]) => {
                 const player = allPlayers.find(p => p.id === id);
                 const isLeader = count === maxVotes && count > 0;
                 return (
                   <div 
                     key={id} 
-                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
-                      isLeader 
-                        ? (color === 'emerald' ? 'bg-emerald-50 border-emerald-300' : 'bg-amber-50 border-amber-300')
-                        : 'bg-slate-50/60 border-slate-200'
+                    className={`flex items-center justify-between p-2 rounded-sm border transition-colors ${
+                      isLeader ? 'bg-slate-50 border-slate-400' : 'bg-white border-slate-200'
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-slate-800">{player?.name}</span>
+                      <span className="font-bold text-xs text-slate-800">{player?.name}</span>
                       {isLeader && (
-                        <span className="text-[10px] font-bold bg-white text-slate-800 px-2 py-0.5 rounded-full border border-slate-200 uppercase font-mono shadow-sm">
-                          Leader ({count})
+                        <span className="text-[9px] font-mono font-bold bg-slate-900 text-white px-1.5 py-0.2 rounded-xs uppercase">
+                          Leading ({count})
                         </span>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 font-mono">
                       <button 
                         onClick={() => handleVoteChange(type, id, -1)}
-                        className="w-8 h-8 flex items-center justify-center bg-white border border-slate-200 rounded-lg text-slate-600 hover:text-slate-900 transition-colors shadow-sm"
+                        className="w-6 h-6 flex items-center justify-center bg-slate-100 hover:bg-slate-200 rounded-xs text-slate-600"
                       >
-                        <Minus className="w-3.5 h-3.5" />
+                        <Minus className="w-3 h-3" />
                       </button>
-                      <span className="w-6 text-center font-mono font-bold text-base text-slate-900">{count}</span>
+                      <span className="w-5 text-center font-bold text-xs">{count}</span>
                       <button 
                         onClick={() => handleVoteChange(type, id, 1)}
-                        className={`w-8 h-8 flex items-center justify-center rounded-lg text-white font-bold transition-colors shadow-sm ${
-                          color === 'emerald' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-500 hover:bg-amber-600'
-                        }`}
+                        className="w-6 h-6 flex items-center justify-center bg-slate-900 hover:bg-slate-800 text-white rounded-xs font-bold"
                       >
-                        <Plus className="w-3.5 h-3.5" />
+                        <Plus className="w-3 h-3" />
                       </button>
                     </div>
                   </div>
                 );
               })}
               {candidates.length === 0 && (
-                <div className="text-center py-4 text-slate-400 text-xs italic">
-                  No nominations added yet.
+                <div className="text-center py-2 text-slate-400 text-xs italic font-mono">
+                  No nominations recorded.
                 </div>
               )}
             </div>
@@ -488,41 +468,41 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
     };
 
     return (
-      <div className="flex flex-col h-full animate-in fade-in duration-300 max-w-xl mx-auto">
-        <div className="mb-6 flex items-center justify-between">
+      <div className="flex flex-col h-full animate-in fade-in duration-200 max-w-xl mx-auto">
+        <div className="mb-4 flex items-center justify-between">
           <button 
             onClick={() => setStep('SELECT')} 
-            className="text-slate-500 flex items-center gap-1.5 hover:text-slate-900 transition-colors text-sm font-semibold py-1 px-2.5 rounded-lg hover:bg-slate-100"
+            className="text-slate-600 flex items-center gap-1 hover:text-slate-900 transition-colors text-xs font-mono font-semibold py-1 px-2 rounded-sm hover:bg-slate-100"
           >
-            <ArrowLeft className="w-4 h-4" /> Back to Squad
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to Squad
           </button>
-          <span className="text-[11px] font-mono uppercase tracking-wider text-amber-800 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 font-bold">
-            Step 2 of 4
+          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-600 bg-slate-100 px-2 py-0.5 rounded-sm font-semibold">
+            Stage 02 / 04
           </span>
         </div>
 
-        <div className="mb-6">
-          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight font-sans">
+        <div className="mb-4">
+          <h2 className="text-xl font-mono font-bold text-slate-900 uppercase tracking-tight">
             Post-Match Honors
           </h2>
-          <p className="text-slate-500 text-sm mt-1">
-            Determine Man of the Match (-50p discount) and Dick of the Day (+50p fine).
+          <p className="text-slate-500 text-xs mt-0.5">
+            MOM: -50p rebate & selects theme. DOD: +50p penalty.
           </p>
         </div>
 
-        <div className="flex-1 overflow-y-auto pb-28 no-scrollbar">
-          {renderVotingSection('Man of the Match', 'MOTM', motmVotes, '-50p MOM off fines', 'emerald')}
-          {renderVotingSection('Dick of the Day', 'DOTD', dotdVotes, '50p fine, no appeal', 'amber')}
+        <div className="flex-1 overflow-y-auto pb-24 no-scrollbar">
+          {renderVotingSection('Man of the Match', 'MOTM', motmVotes, '-£0.50 off fines', true)}
+          {renderVotingSection('Dick of the Day', 'DOTD', dotdVotes, '+£0.50 penalty', false)}
         </div>
 
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-50 via-slate-50 to-slate-50/0 z-20">
-          <div className="max-w-xl mx-auto space-y-2">
+        <div className="fixed bottom-0 left-0 right-0 p-3 bg-white border-t border-slate-200 z-20">
+          <div className="max-w-xl mx-auto space-y-1.5">
             <button
               onClick={finalizeVoting}
-              className="w-full bg-amber-500 hover:bg-amber-600 text-white py-3.5 rounded-xl font-bold text-base shadow-lg shadow-amber-500/20 transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+              className="w-full bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-sm font-mono font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
             >
-              <Gavel className="w-4 h-4" />
-              <span>Proceed to Fine Logging</span>
+              <Gavel className="w-3.5 h-3.5" />
+              <span>Proceed to Fine Tariff Logging</span>
             </button>
             <button
               onClick={() => {
@@ -530,7 +510,7 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
                 setDotdVotes({});
                 setStep('ACTIVE');
               }}
-              className="w-full text-slate-500 hover:text-slate-800 text-xs font-semibold py-1.5 transition-colors"
+              className="w-full text-slate-500 hover:text-slate-800 text-[11px] font-mono py-1 transition-colors"
             >
               Skip voting and log fines directly
             </button>
@@ -545,40 +525,39 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
   // ----------------------------------------------------
   if (step === 'ACTIVE') {
     return (
-      <div className="flex flex-col h-full animate-in fade-in duration-300 max-w-xl mx-auto">
+      <div className="flex flex-col h-full animate-in fade-in duration-200 max-w-xl mx-auto">
         
         {/* Navigation & Header */}
-        <div className="mb-5 space-y-3">
+        <div className="mb-4 space-y-2">
           <div className="flex items-center justify-between">
             <button 
               onClick={() => setStep('VOTING')} 
-              className="text-slate-500 flex items-center gap-1.5 hover:text-slate-900 transition-colors text-sm font-semibold py-1 px-2.5 rounded-lg hover:bg-slate-100"
+              className="text-slate-600 flex items-center gap-1 hover:text-slate-900 transition-colors text-xs font-mono font-semibold py-1 px-2 rounded-sm hover:bg-slate-100"
             >
-              <ArrowLeft className="w-4 h-4" /> Back to Voting
+              <ArrowLeft className="w-3.5 h-3.5" /> Back to Honors
             </button>
-            <span className="text-[11px] font-mono uppercase tracking-wider text-amber-800 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 font-bold">
-              Step 3 of 4
+            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-600 bg-slate-100 px-2 py-0.5 rounded-sm font-semibold">
+              Stage 03 / 04
             </span>
           </div>
 
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div className="bg-white p-3.5 rounded-sm border border-slate-200 shadow-xs flex items-center justify-between">
             <div>
-              <div className="text-[11px] text-amber-700 uppercase font-bold tracking-wider font-mono">
-                Post-Match Teas
+              <div className="text-[10px] text-slate-400 uppercase font-mono font-bold">
+                Match Record
               </div>
-              <h2 className="text-xl font-bold text-slate-900">
-                Duchy M1s <span className="text-amber-600 font-serif italic text-base">vs</span> {opponentName}
+              <h2 className="text-base font-bold text-slate-900 font-mono">
+                Duchy M1s vs {opponentName}
               </h2>
             </div>
-            <span className="inline-flex items-center gap-1.5 bg-red-50 text-red-700 border border-red-200 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider font-mono">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              Live Teas
+            <span className="text-[10px] font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-xs uppercase">
+              Active Session
             </span>
           </div>
         </div>
 
         {/* Players Cards */}
-        <div className="space-y-4 pb-36">
+        <div className="space-y-3 pb-32">
           {(Array.from(selectedPlayerIds) as string[]).map(id => {
             const player = allPlayers.find(p => p.id === id);
             if (!player) return null;
@@ -602,165 +581,151 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
             return (
               <div 
                 key={id} 
-                className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden"
+                className="bg-white rounded-sm border border-slate-200 overflow-hidden shadow-xs"
               >
                 {/* Header */}
-                <div className="p-4 bg-slate-50/70 flex justify-between items-center border-b border-slate-100">
+                <div className="p-3 bg-slate-50/70 flex justify-between items-center border-b border-slate-100">
                   <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-slate-900 text-base">{player.name}</span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-bold text-slate-900 text-sm">{player.name}</span>
                       {state.isU18 && (
-                        <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 font-mono">
+                        <span className="text-[9px] font-mono text-amber-800 bg-amber-50 px-1 rounded-xs border border-amber-200 font-semibold">
                           U18 (½ Price)
                         </span>
                       )}
                       {state.isMotm && (
-                        <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
-                          <Trophy className="w-3 h-3" /> MOM (-50p)
+                        <span className="bg-emerald-50 text-emerald-700 text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-xs border border-emerald-200">
+                          MOM (-50p)
                         </span>
                       )}
                       {state.isDotd && (
-                        <span className="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200 flex items-center gap-1">
-                          <ThumbsDown className="w-3 h-3" /> DOD (+50p)
+                        <span className="bg-amber-50 text-amber-800 text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-xs border border-amber-200">
+                          DOD (+50p)
                         </span>
                       )}
                     </div>
-                    <div className="text-xs text-slate-500 mt-1 font-mono">
-                      Prior Debt: {formatCurrency(player.totalOwed)}
+                    <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                      Prior: {formatCurrency(player.totalOwed)}
                     </div>
                   </div>
 
                   <div className="text-right">
-                    <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider font-mono">
-                      Session Fine
-                    </div>
-                    <div className="text-xl font-bold font-mono text-amber-700">
+                    <span className="text-[9px] text-slate-400 uppercase font-mono block">Session Fine</span>
+                    <span className="text-base font-bold font-mono text-slate-900">
                       {formatCurrency(breakdown.finalTotal)}
-                    </div>
+                    </span>
                   </div>
                 </div>
 
-                {/* 1. General Fines Section (25p each, capped at £2.50) */}
-                <div className="p-4 border-b border-slate-100 bg-white">
+                {/* 1. General Fines Section (25p, capped at £2.50) */}
+                <div className="p-3 border-b border-slate-100 bg-white">
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-700 uppercase tracking-wider font-mono">
-                        General Fines (25p each)
+                    <div className="flex items-center gap-1.5 font-mono text-xs">
+                      <span className="font-bold text-slate-800">
+                        General Fines (25p)
                       </span>
                       {breakdown.isGeneralCapped && (
-                        <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-full border border-amber-200 flex items-center gap-1 font-mono">
+                        <span className="text-[9px] font-bold text-amber-800 bg-amber-50 px-1 py-0.2 rounded-xs border border-amber-200 flex items-center gap-1">
                           <ShieldAlert className="w-3 h-3" /> Capped at £2.50
                         </span>
                       )}
                     </div>
-                    <div className="font-mono text-xs text-slate-500">
-                      {state.generalFines} fines ({formatCurrency(breakdown.generalFinesCapped)})
-                    </div>
+                    <span className="font-mono text-xs text-slate-500">
+                      {state.generalFines} fines = {formatCurrency(breakdown.generalFinesCapped)}
+                    </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => adjustGeneralFines(id, -1)}
                       disabled={state.generalFines <= 0}
-                      className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed text-slate-700 rounded-xl font-bold text-sm transition-colors border border-slate-200 flex items-center justify-center gap-1"
+                      className="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-30 text-slate-700 rounded-sm font-mono font-bold text-xs border border-slate-200 flex items-center justify-center gap-1"
                     >
-                      <Minus className="w-3.5 h-3.5" /> -25p
+                      <Minus className="w-3 h-3" /> -25p
                     </button>
-                    <div className="w-16 text-center font-mono font-bold text-lg text-slate-900">
+                    <div className="w-12 text-center font-mono font-bold text-sm text-slate-900">
                       {state.generalFines}
                     </div>
                     <button
                       onClick={() => adjustGeneralFines(id, 1)}
-                      className="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-sm transition-colors shadow-sm flex items-center justify-center gap-1 active:scale-[0.99]"
+                      className="flex-1 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-sm font-mono font-bold text-xs flex items-center justify-center gap-1"
                     >
-                      <Plus className="w-3.5 h-3.5" /> +25p Fine
+                      <Plus className="w-3 h-3" /> +25p Fine
                     </button>
                   </div>
                 </div>
 
                 {/* 2. Official Cards Grid: Green £2, Yellow £5, Red £20 */}
-                <div className="p-4 border-b border-slate-100 bg-slate-50/40">
-                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2.5 font-mono">
-                    Official Cards (Extra to cap)
+                <div className="p-3 border-b border-slate-100 bg-slate-50/40">
+                  <div className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider mb-2">
+                    Cards (Supplementary to Cap)
                   </div>
-                  <div className="grid grid-cols-3 gap-2.5">
+                  <div className="grid grid-cols-3 gap-2">
                     {/* Green Card £2 */}
-                    <div className="bg-white border border-slate-200 rounded-xl p-2.5 flex flex-col items-center justify-between shadow-xs">
-                      <div className="flex items-center justify-between w-full mb-2">
-                        <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider font-mono">
-                          Green (£2)
-                        </span>
-                        <span className="font-mono text-xs font-bold text-emerald-700">
-                          {state.greenCards}
-                        </span>
+                    <div className="bg-white border border-slate-200 rounded-sm p-2 flex flex-col justify-between">
+                      <div className="flex items-center justify-between w-full mb-1.5 font-mono">
+                        <span className="text-[10px] font-bold text-emerald-700">Green £2</span>
+                        <span className="text-xs font-bold">{state.greenCards}</span>
                       </div>
                       <div className="flex items-center gap-1 w-full">
                         <button
                           onClick={() => adjustCard(id, 'green', -1)}
                           disabled={state.greenCards <= 0}
-                          className="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-30 text-slate-600 rounded-lg flex items-center justify-center transition-colors"
+                          className="flex-1 py-1 bg-slate-100 hover:bg-slate-200 disabled:opacity-20 text-slate-600 rounded-xs flex items-center justify-center"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
                         <button
                           onClick={() => adjustCard(id, 'green', 1)}
-                          className="flex-1 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-200 rounded-lg flex items-center justify-center transition-colors font-bold text-xs"
+                          className="flex-1 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xs flex items-center justify-center font-bold text-xs"
                         >
-                          <Triangle className="w-3.5 h-3.5 fill-current" />
+                          <Triangle className="w-3 h-3 fill-current" />
                         </button>
                       </div>
                     </div>
 
                     {/* Yellow Card £5 */}
-                    <div className="bg-white border border-slate-200 rounded-xl p-2.5 flex flex-col items-center justify-between shadow-xs">
-                      <div className="flex items-center justify-between w-full mb-2">
-                        <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider font-mono">
-                          Yellow (£5)
-                        </span>
-                        <span className="font-mono text-xs font-bold text-amber-700">
-                          {state.yellowCards}
-                        </span>
+                    <div className="bg-white border border-slate-200 rounded-sm p-2 flex flex-col justify-between">
+                      <div className="flex items-center justify-between w-full mb-1.5 font-mono">
+                        <span className="text-[10px] font-bold text-yellow-800">Yellow £5</span>
+                        <span className="text-xs font-bold">{state.yellowCards}</span>
                       </div>
                       <div className="flex items-center gap-1 w-full">
                         <button
                           onClick={() => adjustCard(id, 'yellow', -1)}
                           disabled={state.yellowCards <= 0}
-                          className="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-30 text-slate-600 rounded-lg flex items-center justify-center transition-colors"
+                          className="flex-1 py-1 bg-slate-100 hover:bg-slate-200 disabled:opacity-20 text-slate-600 rounded-xs flex items-center justify-center"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
                         <button
                           onClick={() => adjustCard(id, 'yellow', 1)}
-                          className="flex-1 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-200 rounded-lg flex items-center justify-center transition-colors font-bold text-xs"
+                          className="flex-1 py-1 bg-yellow-50 hover:bg-yellow-100 text-yellow-800 border border-yellow-200 rounded-xs flex items-center justify-center font-bold text-xs"
                         >
-                          <Square className="w-3.5 h-3.5 fill-current" />
+                          <Square className="w-3 h-3 fill-current" />
                         </button>
                       </div>
                     </div>
 
                     {/* Red Card £20 */}
-                    <div className="bg-white border border-slate-200 rounded-xl p-2.5 flex flex-col items-center justify-between shadow-xs">
-                      <div className="flex items-center justify-between w-full mb-2">
-                        <span className="text-[10px] font-bold text-red-700 uppercase tracking-wider font-mono">
-                          Red (£20)
-                        </span>
-                        <span className="font-mono text-xs font-bold text-red-700">
-                          {state.redCards}
-                        </span>
+                    <div className="bg-white border border-slate-200 rounded-sm p-2 flex flex-col justify-between">
+                      <div className="flex items-center justify-between w-full mb-1.5 font-mono">
+                        <span className="text-[10px] font-bold text-red-700">Red £20</span>
+                        <span className="text-xs font-bold">{state.redCards}</span>
                       </div>
                       <div className="flex items-center gap-1 w-full">
                         <button
                           onClick={() => adjustCard(id, 'red', -1)}
                           disabled={state.redCards <= 0}
-                          className="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-30 text-slate-600 rounded-lg flex items-center justify-center transition-colors"
+                          className="flex-1 py-1 bg-slate-100 hover:bg-slate-200 disabled:opacity-20 text-slate-600 rounded-xs flex items-center justify-center"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
                         <button
                           onClick={() => adjustCard(id, 'red', 1)}
-                          className="flex-1 py-1.5 bg-red-100 hover:bg-red-200 text-red-800 border border-red-200 rounded-lg flex items-center justify-center transition-colors font-bold text-xs"
+                          className="flex-1 py-1 bg-red-50 hover:bg-red-100 text-red-800 border border-red-200 rounded-xs flex items-center justify-center font-bold text-xs"
                         >
-                          <Circle className="w-3.5 h-3.5 fill-current" />
+                          <Circle className="w-3 h-3 fill-current" />
                         </button>
                       </div>
                     </div>
@@ -768,47 +733,47 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
                 </div>
 
                 {/* 3. Quick Toggles: MOM, DOD, Teas Item */}
-                <div className="p-3 bg-white flex items-center justify-between gap-2 text-xs">
+                <div className="p-2.5 bg-white flex items-center justify-between gap-1.5 text-xs font-mono">
                   <button
                     onClick={() => updatePlayerSessionState(id, { isMotm: !state.isMotm })}
-                    className={`flex-1 py-2 px-2.5 rounded-xl border flex items-center justify-center gap-1.5 transition-all font-semibold ${
+                    className={`flex-1 py-1.5 px-2 rounded-sm border flex items-center justify-center gap-1 transition-colors ${
                       state.isMotm 
-                        ? 'bg-emerald-100 text-emerald-800 border-emerald-300' 
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300 font-bold' 
                         : 'bg-slate-50 text-slate-600 border-slate-200 hover:text-slate-900'
                     }`}
                   >
-                    <Trophy className="w-3.5 h-3.5 text-emerald-600" />
+                    <Trophy className="w-3 h-3 text-emerald-600" />
                     <span>MOM (-50p)</span>
                   </button>
 
                   <button
                     onClick={() => updatePlayerSessionState(id, { isDotd: !state.isDotd })}
-                    className={`flex-1 py-2 px-2.5 rounded-xl border flex items-center justify-center gap-1.5 transition-all font-semibold ${
+                    className={`flex-1 py-1.5 px-2 rounded-sm border flex items-center justify-center gap-1 transition-colors ${
                       state.isDotd 
-                        ? 'bg-amber-100 text-amber-800 border-amber-300' 
+                        ? 'bg-amber-50 text-amber-800 border-amber-300 font-bold' 
                         : 'bg-slate-50 text-slate-600 border-slate-200 hover:text-slate-900'
                     }`}
                   >
-                    <ThumbsDown className="w-3.5 h-3.5 text-amber-600" />
+                    <ThumbsDown className="w-3 h-3 text-amber-600" />
                     <span>DOD (+50p)</span>
                   </button>
 
                   <button
                     onClick={() => toggleItemBrought(id)}
-                    className={`py-2 px-2.5 rounded-xl border flex items-center justify-center gap-1 transition-all font-semibold ${
+                    className={`py-1.5 px-2 rounded-sm border flex items-center justify-center gap-1 transition-colors ${
                       !state.itemBrought 
-                        ? 'bg-red-100 text-red-800 border-red-300' 
+                        ? 'bg-red-50 text-red-800 border-red-300 font-bold' 
                         : 'bg-slate-50 text-slate-600 border-slate-200 hover:text-slate-900'
                     }`}
                   >
                     {!state.itemBrought ? (
                       <>
-                        <PackageX className="w-3.5 h-3.5 text-red-600" />
-                        <span>Item Missing (+£1)</span>
+                        <PackageX className="w-3 h-3 text-red-600" />
+                        <span>Item (+£1)</span>
                       </>
                     ) : (
                       <>
-                        <PackageCheck className="w-3.5 h-3.5 text-emerald-600" />
+                        <PackageCheck className="w-3 h-3 text-emerald-600" />
                         <span>Item OK</span>
                       </>
                     )}
@@ -820,14 +785,14 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
         </div>
 
         {/* Floating Bottom Action */}
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-50 via-slate-50 to-slate-50/0 z-30">
+        <div className="fixed bottom-0 left-0 right-0 p-3 bg-white border-t border-slate-200 z-30">
           <div className="max-w-xl mx-auto">
             <button
               onClick={() => setStep('FINISHING')}
-              className="w-full bg-amber-500 hover:bg-amber-600 text-white py-3.5 rounded-xl font-bold text-base shadow-lg shadow-amber-500/20 transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+              className="w-full bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-sm font-mono font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
             >
-              <span>Review Fines & U18 Check (Finishing Screen)</span>
-              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+              <span>Review & U18 Check (Finishing Screen)</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -840,68 +805,66 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
   // User Prompt: "for u18 add a u18 button ont eh finisng screen"
   // ----------------------------------------------------
   return (
-    <div className="flex flex-col h-full animate-in fade-in duration-300 max-w-xl mx-auto">
+    <div className="flex flex-col h-full animate-in fade-in duration-200 max-w-xl mx-auto">
       
       {/* Navigation Header */}
-      <div className="mb-5 space-y-3">
+      <div className="mb-4 space-y-2">
         <div className="flex items-center justify-between">
           <button 
             onClick={() => setStep('ACTIVE')} 
-            className="text-slate-500 flex items-center gap-1.5 hover:text-slate-900 transition-colors text-sm font-semibold py-1 px-2.5 rounded-lg hover:bg-slate-100"
+            className="text-slate-600 flex items-center gap-1 hover:text-slate-900 transition-colors text-xs font-mono font-semibold py-1 px-2 rounded-sm hover:bg-slate-100"
           >
-            <ArrowLeft className="w-4 h-4" /> Back to Fine Logging
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to Tariff Logging
           </button>
-          <span className="text-[11px] font-mono uppercase tracking-wider text-amber-800 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 font-bold">
-            Step 4 of 4 · Finishing Screen
+          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-600 bg-slate-100 px-2 py-0.5 rounded-sm font-semibold">
+            Stage 04 / 04 · Finishing
           </span>
         </div>
 
-        <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-          <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-700 mb-1 flex items-center gap-1.5">
-            <Percent className="w-3.5 h-3.5" />
-            Finishing & Settlement Room
+        <div className="bg-white border border-slate-200 p-4 rounded-sm shadow-xs">
+          <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 mb-0.5">
+            Audit & U18 Concession Review
           </div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-            Final Audit & U18 Review
+          <h2 className="text-xl font-mono font-bold text-slate-900 uppercase tracking-tight">
+            Match Settlement Sheet
           </h2>
-          <p className="text-slate-500 text-xs mt-1">
-            Tap the <strong className="text-amber-700">U18 (½ Price)</strong> button on any player to apply their half-price discount before publishing to the bank ledger.
+          <p className="text-slate-500 text-xs mt-0.5">
+            Tap <strong className="text-slate-800">U18 (½ Price)</strong> on any player to halve their fines before saving.
           </p>
         </div>
       </div>
 
       {/* Summary Stat Grid */}
-      <div className="grid grid-cols-3 gap-2.5 mb-6">
-        <div className="bg-white border border-slate-200 rounded-xl p-3 text-center shadow-xs">
-          <div className="text-[10px] uppercase font-bold text-slate-500 font-mono">Gross Fines</div>
-          <div className="text-lg font-bold font-mono text-slate-900 mt-0.5">
+      <div className="grid grid-cols-3 gap-2 mb-4 font-mono">
+        <div className="bg-white border border-slate-200 rounded-sm p-2.5 text-center shadow-xs">
+          <div className="text-[9px] uppercase font-bold text-slate-400">Gross Total</div>
+          <div className="text-base font-bold text-slate-900 mt-0.5">
             {formatCurrency(totalSessionGross)}
           </div>
         </div>
-        <div className="bg-white border border-amber-200 rounded-xl p-3 text-center shadow-xs">
-          <div className="text-[10px] uppercase font-bold text-amber-700 font-mono">U18 Discounts</div>
-          <div className="text-lg font-bold font-mono text-amber-700 mt-0.5">
+        <div className="bg-white border border-slate-200 rounded-sm p-2.5 text-center shadow-xs">
+          <div className="text-[9px] uppercase font-bold text-amber-700">U18 Concessions</div>
+          <div className="text-base font-bold text-amber-700 mt-0.5">
             -{formatCurrency(totalU18Discounts)}
           </div>
         </div>
-        <div className="bg-white border border-slate-200 rounded-xl p-3 text-center shadow-xs">
-          <div className="text-[10px] uppercase font-bold text-emerald-700 font-mono">New Pot Added</div>
-          <div className="text-lg font-bold font-mono text-emerald-700 mt-0.5">
+        <div className="bg-white border border-slate-200 rounded-sm p-2.5 text-center shadow-xs">
+          <div className="text-[9px] uppercase font-bold text-emerald-700">Net Pot Added</div>
+          <div className="text-base font-bold text-emerald-700 mt-0.5">
             +{formatCurrency(totalSessionNet)}
           </div>
         </div>
       </div>
 
       {/* Theme of the Week input */}
-      <div className="mb-6 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-amber-800 uppercase tracking-wider font-mono">
-            <Sparkles className="w-3.5 h-3.5" />
+      <div className="mb-4 bg-white border border-slate-200 rounded-sm p-3.5 shadow-xs space-y-1.5 font-mono">
+        <div className="flex items-center justify-between text-xs">
+          <span className="font-bold text-slate-800 uppercase text-[11px]">
             Theme of the Week (MOM's Choice)
-          </div>
+          </span>
           {motmWinnerNames && (
-            <span className="text-[11px] text-slate-600 font-medium">
-              MOM: <strong className="text-slate-900">{motmWinnerNames}</strong>
+            <span className="text-[10px] text-slate-500">
+              MOM: <strong>{motmWinnerNames}</strong>
             </span>
           )}
         </div>
@@ -909,22 +872,19 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
           type="text"
           value={weekTheme}
           onChange={(e) => setWeekTheme(e.target.value)}
-          placeholder="e.g. Hawaiian Shirts, Worst Kit, Bad Moustaches..."
-          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-900 placeholder-slate-400 text-sm focus:ring-2 focus:ring-amber-500 outline-none transition-all"
+          placeholder="Enter theme (e.g. Hawaiian Shirts, Bad Moustaches)..."
+          className="w-full bg-slate-50 border border-slate-200 rounded-sm px-3 py-1.5 text-slate-900 placeholder-slate-400 text-xs focus:bg-white focus:border-slate-400 outline-none"
         />
-        <div className="text-[10px] text-slate-500 italic">
-          Must be posted in team chat by end of Tuesday after training.
-        </div>
       </div>
 
       {/* Players Itemized List with U18 BUTTON ON FINISHING SCREEN */}
-      <div className="space-y-3 pb-36">
+      <div className="space-y-2.5 pb-28">
         <div className="flex items-center justify-between px-1">
-          <span className="text-xs font-bold text-slate-600 uppercase tracking-wider font-mono">
-            Squad Breakdown & U18 Half-Price Toggles
+          <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-wider">
+            Player Schedule & U18 Toggles
           </span>
-          <span className="text-[11px] text-slate-500">
-            {selectedPlayerIds.size} players
+          <span className="text-[10px] font-mono text-slate-400">
+            {selectedPlayerIds.size} Members
           </span>
         </div>
 
@@ -951,100 +911,100 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
           return (
             <div 
               key={id}
-              className={`bg-white border rounded-2xl p-4 transition-all duration-200 shadow-sm ${
+              className={`bg-white border rounded-sm p-3 transition-colors shadow-xs ${
                 state.isPaidOff 
                   ? 'border-emerald-300 bg-emerald-50/20' 
                   : state.isU18
-                    ? 'border-amber-300 bg-amber-50/10' 
+                    ? 'border-slate-300 bg-slate-50/50' 
                     : 'border-slate-200'
               }`}
             >
-              <div className="flex items-start justify-between gap-2 mb-3">
+              <div className="flex items-start justify-between gap-2 mb-2">
                 <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-base text-slate-900">{player.name}</span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="font-bold text-sm text-slate-900">{player.name}</span>
                     {state.isU18 && (
-                      <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 font-mono">
-                        U18 · ½ PRICE ACTIVE
+                      <span className="text-[9px] font-mono font-bold text-amber-800 bg-amber-50 px-1 rounded-xs border border-amber-200">
+                        U18 · ½ Price
                       </span>
                     )}
                     {state.isPaidOff && (
-                      <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 font-mono flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" /> SETTLED AT PUB
+                      <span className="text-[9px] font-mono font-bold text-emerald-800 bg-emerald-50 px-1 rounded-xs border border-emerald-200">
+                        Settled at pub
                       </span>
                     )}
                   </div>
 
                   {/* Itemized line items */}
-                  <div className="text-xs text-slate-600 mt-1 space-y-0.5 font-mono">
+                  <div className="text-[11px] text-slate-500 mt-1 space-y-0.5 font-mono">
                     {breakdown.generalFinesCount > 0 && (
                       <div>
-                        {breakdown.generalFinesCount}x General Fines (25p): {formatCurrency(breakdown.generalFinesCapped)}
+                        {breakdown.generalFinesCount}x General (25p): {formatCurrency(breakdown.generalFinesCapped)}
                         {breakdown.isGeneralCapped && ' (Capped at £2.50)'}
                       </div>
                     )}
-                    {state.greenCards > 0 && <div>{state.greenCards}x Green Card (£2): {formatCurrency(state.greenCards * 2)}</div>}
-                    {state.yellowCards > 0 && <div>{state.yellowCards}x Yellow Card (£5): {formatCurrency(state.yellowCards * 5)}</div>}
-                    {state.redCards > 0 && <div>{state.redCards}x Red Card (£20): {formatCurrency(state.redCards * 20)}</div>}
-                    {state.isDotd && <div className="text-amber-700">Dick of the Day (+50p)</div>}
-                    {state.isMotm && <div className="text-emerald-700">Man of the Match (-50p discount)</div>}
-                    {!state.itemBrought && <div className="text-red-700">Kit/Teas Item Missing (+£1)</div>}
+                    {state.greenCards > 0 && <div>{state.greenCards}x Green (£2): {formatCurrency(state.greenCards * 2)}</div>}
+                    {state.yellowCards > 0 && <div>{state.yellowCards}x Yellow (£5): {formatCurrency(state.yellowCards * 5)}</div>}
+                    {state.redCards > 0 && <div>{state.redCards}x Red (£20): {formatCurrency(state.redCards * 20)}</div>}
+                    {state.isDotd && <div>Dick of the Day (+50p)</div>}
+                    {state.isMotm && <div>Man of the Match (-50p rebate)</div>}
+                    {!state.itemBrought && <div>Item Missing (+£1)</div>}
                     {state.isU18 && breakdown.u18Discount > 0 && (
-                      <div className="text-amber-700 font-bold">
-                        U18 50% Discount Applied: -{formatCurrency(breakdown.u18Discount)}
+                      <div className="text-amber-800 font-bold">
+                        U18 50% Concession: -{formatCurrency(breakdown.u18Discount)}
                       </div>
                     )}
                     {breakdown.grossTotal === 0 && (
-                      <div className="text-slate-400 italic">No fines this session.</div>
+                      <div className="text-slate-400 italic">No fines this fixture.</div>
                     )}
                   </div>
                 </div>
 
-                <div className="text-right">
-                  <div className="text-[10px] uppercase font-bold text-slate-500 font-mono">Net Session</div>
-                  <div className={`text-xl font-bold font-mono ${state.isPaidOff ? 'text-emerald-700' : 'text-slate-900'}`}>
+                <div className="text-right font-mono">
+                  <span className="text-[9px] uppercase font-bold text-slate-400 block">Session Net</span>
+                  <span className={`text-base font-bold ${state.isPaidOff ? 'text-emerald-700' : 'text-slate-900'}`}>
                     {state.isPaidOff ? '£0.00' : formatCurrency(breakdown.finalTotal)}
-                  </div>
-                  <div className="text-[10px] text-slate-500 font-mono mt-0.5">
-                    New Total: {formatCurrency(state.isPaidOff ? 0 : player.totalOwed + breakdown.finalTotal)}
-                  </div>
+                  </span>
+                  <span className="text-[10px] text-slate-400 block mt-0.5">
+                    New total: {formatCurrency(state.isPaidOff ? 0 : player.totalOwed + breakdown.finalTotal)}
+                  </span>
                 </div>
               </div>
 
               {/* ACTION BUTTONS ON FINISHING SCREEN: 
                   1. The requested U18 BUTTON!
                   2. Settle at pub button */}
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 font-mono">
                 {/* PROMINENT U18 BUTTON ON FINISHING SCREEN */}
                 <button
                   onClick={() => toggleU18(id)}
-                  className={`flex-1 py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 active:scale-[0.98] ${
+                  className={`flex-1 py-1 px-2.5 rounded-sm border text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 ${
                     state.isU18
-                      ? 'bg-amber-500 text-white border-amber-600 shadow-sm'
-                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-amber-300 hover:bg-amber-50/50'
+                      ? 'bg-slate-900 text-white border-slate-900'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                   }`}
                 >
-                  <Percent className="w-3.5 h-3.5" />
-                  <span>{state.isU18 ? 'U18 Active (½ Price)' : 'Apply U18 (½ Price)'}</span>
+                  <Percent className="w-3 h-3" />
+                  <span>{state.isU18 ? 'U18 (½ Price) Active' : 'Apply U18 (½ Price)'}</span>
                 </button>
 
                 <button
                   onClick={() => togglePaidOff(id)}
-                  className={`py-2 px-3.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 active:scale-[0.98] ${
+                  className={`py-1 px-2.5 rounded-sm border text-xs font-semibold transition-colors flex items-center gap-1 ${
                     state.isPaidOff
                       ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                      : 'bg-slate-50 text-slate-600 border-slate-200 hover:text-slate-900 hover:bg-slate-100'
+                      : 'bg-slate-50 text-slate-600 border-slate-200 hover:text-slate-900'
                   }`}
                 >
                   {state.isPaidOff ? (
                     <>
-                      <RotateCcw className="w-3.5 h-3.5" />
-                      <span>Undo Paid</span>
+                      <RotateCcw className="w-3 h-3" />
+                      <span>Undo</span>
                     </>
                   ) : (
                     <>
-                      <CreditCard className="w-3.5 h-3.5" />
-                      <span>Paid at Pub</span>
+                      <CreditCard className="w-3 h-3" />
+                      <span>Settled</span>
                     </>
                   )}
                 </button>
@@ -1055,14 +1015,14 @@ export const SessionWizard: React.FC<SessionWizardProps> = ({ allPlayers, onFini
       </div>
 
       {/* Sticky Save & Authorize Action */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-50 via-slate-50 to-slate-50/0 z-30">
+      <div className="fixed bottom-0 left-0 right-0 p-3 bg-white border-t border-slate-200 z-30">
         <div className="max-w-xl mx-auto">
           <button
             onClick={() => onFinishSession(sessionData, opponentName, weekTheme)}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-bold text-base shadow-lg shadow-emerald-600/20 transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+            className="w-full bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-sm font-mono font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
           >
-            <Gavel className="w-5 h-5 stroke-[2.5]" />
-            <span>Post Fines to Duchy Bank Ledger</span>
+            <Gavel className="w-3.5 h-3.5" />
+            <span>Commit Fines to Ledger</span>
           </button>
         </div>
       </div>
