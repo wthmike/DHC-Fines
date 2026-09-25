@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Player, ViewState, SessionData, SessionRecord } from './types';
+import { Player, ViewState, SessionData, SessionRecord, SessionTransaction } from './types';
 import { Leaderboard } from './components/Leaderboard';
 import { AdminPanel } from './components/AdminPanel';
 import { SessionWizard } from './components/SessionWizard';
-import { Settings, ArrowLeft, Activity } from 'lucide-react';
+import { calculatePlayerFines } from './utils';
+import { INITIAL_PLAYERS } from './constants';
 import { db } from './firebase';
 import { 
   collection, 
@@ -17,6 +18,7 @@ import {
   orderBy,
   increment
 } from 'firebase/firestore';
+import { Settings, ArrowLeft, Activity } from 'lucide-react';
 
 export default function App() {
   const [players, setPlayers] = useState<Player[]>([]);
@@ -28,10 +30,26 @@ export default function App() {
   useEffect(() => {
     // Subscribe to Players
     const playersUnsub = onSnapshot(collection(db, "players"), (snapshot) => {
+      if (snapshot.empty && loading) {
+        INITIAL_PLAYERS.forEach(async (p) => {
+          try {
+            await addDoc(collection(db, "players"), {
+              name: p.name,
+              totalOwed: p.totalOwed,
+              isU18: p.isU18 || false,
+              isHidden: false
+            });
+          } catch (e) {
+            console.error("Error seeding player", e);
+          }
+        });
+      }
+
       const loadedPlayers: Player[] = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as Player));
+      
       setPlayers(loadedPlayers);
       setLoading(false);
     });
@@ -50,11 +68,14 @@ export default function App() {
       playersUnsub();
       historyUnsub();
     };
-  }, []);
+  }, [loading]);
 
-  const updatePlayerTotal = async (id: string, newTotal: number) => {
+  const updatePlayerTotal = async (id: string, newTotal: number, isU18?: boolean, isHidden?: boolean) => {
     try {
-      await updateDoc(doc(db, "players", id), { totalOwed: newTotal });
+      const updateData: Record<string, any> = { totalOwed: newTotal };
+      if (typeof isU18 === 'boolean') updateData.isU18 = isU18;
+      if (typeof isHidden === 'boolean') updateData.isHidden = isHidden;
+      await updateDoc(doc(db, "players", id), updateData);
     } catch (e) {
       console.error("Error updating player", e);
     }
@@ -68,11 +89,22 @@ export default function App() {
     }
   };
 
-  const addPlayer = async (name: string) => {
+  // Toggle Hide from public view (keeping fines intact)
+  const toggleHidePlayer = async (id: string, isHidden: boolean) => {
+    try {
+      await updateDoc(doc(db, "players", id), { isHidden });
+    } catch (e) {
+      console.error("Error toggling player hide status", e);
+    }
+  };
+
+  const addPlayer = async (name: string, isU18?: boolean) => {
     try {
       await addDoc(collection(db, "players"), {
         name,
-        totalOwed: 0
+        totalOwed: 0,
+        isU18: !!isU18,
+        isHidden: false
       });
     } catch (e) {
       console.error("Error adding player", e);
@@ -93,11 +125,9 @@ export default function App() {
 
     const batch = writeBatch(db);
 
-    // 1. Reset Player
     const playerRef = doc(db, "players", id);
     batch.update(playerRef, { totalOwed: 0 });
 
-    // 2. Add History Record
     const newRecordRef = doc(collection(db, "history"));
     batch.set(newRecordRef, {
       timestamp: Date.now(),
@@ -107,7 +137,7 @@ export default function App() {
         playerId: id,
         playerName: player.name,
         amount: 0,
-        tags: [],
+        tags: ['PAID'],
         isPaidOff: true
       }]
     });
@@ -116,7 +146,6 @@ export default function App() {
       await batch.commit();
     } catch (e) {
       console.error("Error paying off player", e);
-      alert("Failed to process payment.");
     }
   };
 
@@ -124,94 +153,81 @@ export default function App() {
     const session = history.find(s => s.id === sessionId);
     if (!session) return;
     
-    // Note: Confirmation UI is handled in AdminPanel now.
-    
     const batch = writeBatch(db);
     
-    // Reverse transactions
     session.transactions.forEach(t => {
-      // CRITICAL CHECK: Only attempt to update players that still exist.
-      // If a player was deleted from the roster, we cannot update their doc.
-      // Trying to update a non-existent doc in a batch will fail the entire batch.
       const playerExists = players.some(p => p.id === t.playerId);
-      
-      if (playerExists) {
+      if (playerExists && t.amount > 0 && !t.isPaidOff) {
         const playerRef = doc(db, "players", t.playerId);
-        
-        // If it was a 'PAYMENT' type or had isPaidOff=true, the total was set to 0.
-        // Reversing a "set to 0" is tricky because we lost the previous value.
-        // However, standard logic for deleteSession is simply reversing the added amount.
-        // For 'PAYMENT' type records created via payOffPlayer, amount is 0. 
-        // So deleting a payment record currently won't restore the debt because we don't track what the debt was before.
-        // This is an acceptable limitation for now unless we store 'previousDebt' in the transaction.
-        // For standard fines, we reverse the amount.
-        if (t.amount !== 0) {
-            batch.update(playerRef, { totalOwed: increment(-t.amount) });
-        }
-      } else {
-        console.warn(`Skipping refund for player ${t.playerName} (${t.playerId}) as they no longer exist in the database.`);
+        batch.update(playerRef, { totalOwed: increment(-t.amount) });
       }
     });
 
-    // Delete history record
     batch.delete(doc(db, "history", sessionId));
 
     try {
       await batch.commit();
     } catch (e) {
       console.error("Error deleting session", e);
-      alert("Failed to delete session. Check console for details.");
     }
   };
 
-  const handleFinishSession = async (sessionData: SessionData, opponentName: string) => {
-    const transactions: { playerId: string; playerName: string; amount: number; tags: string[]; isPaidOff: boolean }[] = [];
-    
-    // We use a batch to ensure all updates happen together or not at all
+  const handleFinishSession = async (
+    sessionData: SessionData, 
+    opponentName: string, 
+    theme?: string
+  ) => {
+    const transactions: SessionTransaction[] = [];
     const batch = writeBatch(db);
 
     players.forEach(player => {
       const data = sessionData[player.id];
       if (!data) return;
 
-      let totalSessionAmount = data.addedAmount;
-      const finalTags = [...data.tags];
+      const breakdown = calculatePlayerFines(data);
+      const sessionAmount = breakdown.finalTotal;
 
-      // Add Item Fine if not brought
-      if (!data.itemBrought) {
-        totalSessionAmount += 1.00;
-        finalTags.push('ITEM');
+      const playerRef = doc(db, "players", player.id);
+
+      if (data.isPaidOff) {
+        batch.update(playerRef, { 
+          totalOwed: 0,
+          isU18: data.isU18 
+        });
+      } else if (sessionAmount > 0) {
+        batch.update(playerRef, { 
+          totalOwed: increment(sessionAmount),
+          isU18: data.isU18 
+        });
+      } else if (data.isU18 !== player.isU18) {
+        batch.update(playerRef, { isU18: data.isU18 });
       }
 
-      // 1. Prepare History Transaction Data
-      if (totalSessionAmount > 0 || data.isPaidOff) {
+      if (sessionAmount > 0 || data.isPaidOff || data.tags.length > 0) {
         transactions.push({
           playerId: player.id,
           playerName: player.name,
-          amount: totalSessionAmount,
-          tags: finalTags,
+          amount: sessionAmount,
+          generalFines: data.generalFines,
+          greenCards: data.greenCards,
+          yellowCards: data.yellowCards,
+          redCards: data.redCards,
+          isDotd: data.isDotd,
+          isMotm: data.isMotm,
+          isU18: data.isU18,
+          tags: data.tags,
           isPaidOff: data.isPaidOff
         });
       }
-
-      // 2. Prepare Player Balance Update
-      const playerRef = doc(db, "players", player.id);
-      
-      if (data.isPaidOff) {
-        batch.update(playerRef, { totalOwed: 0 });
-      } else if (totalSessionAmount !== 0) {
-        // We calculate the new total based on current client state
-        batch.update(playerRef, { totalOwed: player.totalOwed + totalSessionAmount });
-      }
     });
 
-    // 3. Create History Record
     if (transactions.length > 0) {
       const newRecordRef = doc(collection(db, "history"));
       batch.set(newRecordRef, {
         timestamp: Date.now(),
         opponent: opponentName,
         type: 'MATCH',
+        theme: theme || '',
         transactions: transactions
       });
     }
@@ -221,24 +237,22 @@ export default function App() {
       setView(ViewState.LEADERBOARD);
     } catch (e) {
       console.error("Error finishing session", e);
-      alert("Failed to save session. Check internet connection.");
+      alert("Failed to save session.");
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
-        <Activity className="w-8 h-8 animate-pulse text-blue-500" />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-700">
+        <Activity className="w-8 h-8 animate-pulse text-amber-500" />
       </div>
     );
   }
 
-  // --- Main Render ---
-
   // Wizard Mode (Full Screen)
   if (view === ViewState.SESSION_SETUP || view === ViewState.ACTIVE_SESSION) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100">
+      <div className="min-h-screen bg-slate-50 text-slate-900">
         <div className="max-w-md mx-auto p-4 min-h-screen">
           <SessionWizard 
             allPlayers={players}
@@ -252,37 +266,38 @@ export default function App() {
 
   // Dashboard / Admin Mode
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-blue-500 selection:text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-amber-500 selection:text-white">
       
-      {/* Navbar */}
-      <nav className="bg-slate-900/50 backdrop-blur-xl border-b border-slate-800 sticky top-0 z-20">
+      {/* Clean Light-Mode Navbar */}
+      <nav className="bg-white/80 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-20 shadow-xs">
         <div className="max-w-md mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* Square Orange Logo akin to Deutsche Bank */}
-            <div className="w-9 h-9 bg-orange-600 rounded-sm flex items-center justify-center text-white font-bold shadow-lg shadow-orange-900/20 border border-white/10">
+            <div className="w-9 h-9 bg-amber-500 rounded-lg flex items-center justify-center text-white font-bold shadow-md shadow-amber-500/20">
               <span className="font-serif italic text-xl">D</span>
             </div>
-            <h1 className="text-xl font-bold tracking-tight text-white font-serif">
+            <h1 className="text-xl font-bold tracking-tight text-slate-900 font-serif">
               DuchyBank
             </h1>
           </div>
           
           <div className="flex gap-2">
             {view === ViewState.ADMIN_PANEL ? (
-               <button 
+              <button 
                 onClick={() => setView(ViewState.LEADERBOARD)}
-                className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors"
-               >
-                 <ArrowLeft className="w-4 h-4" /> <span className="hidden sm:inline">Back</span>
-               </button>
+                className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl flex items-center gap-1.5 text-sm font-semibold transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" /> <span>Back</span>
+              </button>
             ) : (
-                <button 
+              <button 
                 onClick={() => setView(ViewState.ADMIN_PANEL)}
-                className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                className="p-2.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors"
                 aria-label="Admin Settings"
-                >
+                title="Admin Settings"
+              >
                 <Settings className="w-5 h-5" />
-                </button>
+              </button>
             )}
           </div>
         </div>
@@ -292,26 +307,27 @@ export default function App() {
       <main className="max-w-md mx-auto p-4 space-y-6">
         
         {view === ViewState.LEADERBOARD && (
-            <>
-                <Leaderboard players={players} history={history} />
-                <div className="text-center text-xs text-slate-600 mt-8 pb-8">
-                    Duchy Hockey Club • Fine Management System
-                </div>
-            </>
+          <>
+            <Leaderboard players={players} history={history} />
+            <div className="text-center text-xs text-slate-400 mt-8 pb-8 font-medium">
+              Duchy Hockey Club • Fine Management System
+            </div>
+          </>
         )}
 
         {view === ViewState.ADMIN_PANEL && (
-            <AdminPanel 
-                players={players}
-                history={history}
-                onUpdatePlayer={updatePlayerTotal}
-                onUpdatePlayerName={updatePlayerName}
-                onAddPlayer={addPlayer}
-                onRemovePlayer={removePlayer}
-                onStartSession={() => setView(ViewState.SESSION_SETUP)}
-                onDeleteSession={deleteSession}
-                onPayOffPlayer={payOffPlayer}
-            />
+          <AdminPanel 
+            players={players}
+            history={history}
+            onUpdatePlayer={updatePlayerTotal}
+            onUpdatePlayerName={updatePlayerName}
+            onToggleHidePlayer={toggleHidePlayer}
+            onAddPlayer={addPlayer}
+            onRemovePlayer={removePlayer}
+            onStartSession={() => setView(ViewState.SESSION_SETUP)}
+            onDeleteSession={deleteSession}
+            onPayOffPlayer={payOffPlayer}
+          />
         )}
 
       </main>

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { SessionRecord } from '../types';
+import { SessionRecord, SessionTransaction } from '../types';
 import { formatDate, formatCurrency } from '../utils';
-import { Calendar, ChevronDown, ChevronUp, Users, Trash2, CheckCircle } from 'lucide-react';
+import { 
+  Calendar, ChevronDown, ChevronUp, Users, Trash2, CheckCircle2
+} from 'lucide-react';
 
 interface HistoryListProps {
   history: SessionRecord[];
@@ -15,161 +17,207 @@ export const HistoryList: React.FC<HistoryListProps> = ({ history, onDelete }) =
     setExpandedId(expandedId === id ? null : id);
   };
 
-  const renderBadges = (tags: string[], isPaidOff?: boolean) => {
-      const hasTags = tags && tags.length > 0;
-      if (!hasTags && !isPaidOff) return null;
+  const renderTagBadges = (t: SessionTransaction) => {
+    const tags = t.tags || [];
+    return (
+      <div className="flex gap-1 flex-wrap mt-1">
+        {tags.map((tag, i) => {
+          let badgeClass = "bg-slate-100 text-slate-700 border-slate-200";
+          let label = tag;
 
-      return (
-          <div className="flex gap-1 flex-wrap mt-1">
-              {hasTags && tags.map((tag, i) => {
-                  let badgeClass = "bg-slate-800 text-slate-400 border-slate-700";
-                  let text = tag;
-                  
-                  if (tag === 'MOTM') { badgeClass = "bg-blue-500/10 text-blue-400 border-blue-500/20"; text = "MoM"; }
-                  if (tag === 'DOTD') { badgeClass = "bg-pink-500/10 text-pink-400 border-pink-500/20"; text = "DoD"; }
-                  if (tag === 'GRN') { badgeClass = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"; text = "Grn"; }
-                  if (tag === 'YLW') { badgeClass = "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"; text = "Ylw"; }
-                  if (tag === 'RED') { badgeClass = "bg-red-500/10 text-red-400 border-red-500/20"; text = "Red"; }
-                  if (tag === 'ITEM') { badgeClass = "bg-red-500/10 text-red-400 border-red-500/20"; text = "Item Missing"; }
+          if (tag === 'MOTM') {
+            badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200";
+            label = "MOM (-50p)";
+          } else if (tag === 'DOTD') {
+            badgeClass = "bg-amber-50 text-amber-700 border-amber-200";
+            label = "DOD (+50p)";
+          } else if (tag.includes('GRN')) {
+            badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200";
+            label = "Green (£2)";
+          } else if (tag.includes('YLW')) {
+            badgeClass = "bg-yellow-50 text-yellow-800 border-yellow-200";
+            label = "Yellow (£5)";
+          } else if (tag === 'RED') {
+            badgeClass = "bg-red-50 text-red-700 border-red-200";
+            label = "Red (£20)";
+          } else if (tag === 'U18') {
+            badgeClass = "bg-amber-100 text-amber-800 border-amber-200 font-bold";
+            label = "U18 (½ Price)";
+          } else if (tag.includes('FINE')) {
+            badgeClass = "bg-slate-100 text-slate-700 border-slate-200";
+            label = tag.replace('xFINE', 'x 25p');
+          } else if (tag === 'ITEM') {
+            badgeClass = "bg-red-50 text-red-700 border-red-200";
+            label = "Item Missing";
+          }
 
-                  return (
-                      <span key={i} className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${badgeClass}`}>
-                          {text}
-                      </span>
-                  );
-              })}
-              {isPaidOff && (
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
-                      Paid Off
-                  </span>
-              )}
-          </div>
-      );
+          return (
+            <span key={i} className={`text-[10px] font-bold px-1.5 py-0.5 rounded border font-mono ${badgeClass}`}>
+              {label}
+            </span>
+          );
+        })}
+
+        {t.isPaidOff && (
+          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-emerald-50 text-emerald-700 border-emerald-200 font-mono">
+            Paid Off
+          </span>
+        )}
+      </div>
+    );
   };
 
   if (history.length === 0) {
-      return (
-          <div className="text-center py-8 text-slate-500 text-sm italic">
-              No match history available.
-          </div>
-      );
+    return (
+      <div className="text-center py-6 text-slate-400 text-sm italic">
+        No match history recorded yet.
+      </div>
+    );
   }
 
   return (
     <div className={onDelete ? "" : "mt-8"}>
-        {!onDelete && (
-            <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3 px-1 flex items-center gap-2 font-serif">
-                <Calendar className="w-4 h-4" />
-                Match History
-            </h3>
-        )}
-        <div className="space-y-3">
+      {!onDelete && (
+        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-1 flex items-center gap-1.5 font-sans">
+          <Calendar className="w-4 h-4 text-slate-400" />
+          Match History
+        </h3>
+      )}
+
+      <div className="space-y-2.5">
         {history.map((session) => {
-            const isPayment = session.type === 'PAYMENT';
-            const totalFines = session.transactions.reduce((acc, t) => acc + t.amount, 0);
-            const isExpanded = expandedId === session.id;
+          const isPayment = session.type === 'PAYMENT';
+          const totalFines = session.transactions.reduce((acc, t) => acc + (t.isPaidOff ? 0 : t.amount), 0);
+          const isExpanded = expandedId === session.id;
 
-            if (isPayment) {
-                 const payer = session.transactions[0]?.playerName || "Unknown";
-                 return (
-                     <div key={session.id} className="bg-emerald-900/10 rounded-xl border border-emerald-500/20 overflow-hidden shadow-sm flex items-center justify-between p-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-emerald-500/20 rounded-full text-emerald-400">
-                                <CheckCircle className="w-4 h-4" />
-                            </div>
-                            <div>
-                                <div className="text-sm font-medium text-emerald-100">
-                                    <span className="font-bold text-white">{payer}</span> paid off their debt.
-                                </div>
-                                <div className="text-[10px] text-emerald-400/60 font-mono">
-                                    {formatDate(session.timestamp)}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                             <span className="text-[10px] font-bold px-2 py-1 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 uppercase tracking-wider">
-                                Paid Off
-                             </span>
-                             {onDelete && (
-                                <button 
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onDelete(session.id);
-                                    }}
-                                    className="p-1.5 text-emerald-500/50 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
-                                    title="Delete Record"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
-                             )}
-                        </div>
-                     </div>
-                 )
-            }
-
+          // Payment Settlement Statement Item
+          if (isPayment) {
+            const payer = session.transactions[0]?.playerName || "Unknown Player";
             return (
-                <div key={session.id} className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-sm">
-                    <button 
-                        onClick={() => toggleExpand(session.id)}
-                        className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-800 transition-colors"
-                    >
-                        <div className="text-left">
-                            <div className="font-bold text-slate-200 text-sm font-serif">
-                                <span className="text-slate-500 font-normal font-sans italic pr-1">vs</span>{session.opponent}
-                            </div>
-                            <div className="text-[10px] text-slate-500 mt-0.5 font-sans">
-                                {formatDate(session.timestamp)}
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <div className="text-right">
-                                <div className="font-bold text-blue-400 text-sm font-mono">{formatCurrency(totalFines)}</div>
-                            </div>
-                            {isExpanded ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
-                        </div>
-                    </button>
-
-                    {isExpanded && (
-                        <div className="bg-slate-950/50 px-4 py-3 border-t border-slate-800">
-                             <div className="text-[10px] font-bold text-slate-600 uppercase mb-2 flex items-center gap-1">
-                                <Users className="w-3 h-3" /> Player Fines
-                             </div>
-                             {session.transactions.length > 0 ? (
-                                <ul className="space-y-3">
-                                    {session.transactions.map((t, idx) => (
-                                        <li key={`${session.id}-${t.playerId}-${idx}`} className="flex justify-between items-start text-sm">
-                                            <div className="flex flex-col">
-                                                <span className="text-slate-300 font-medium text-xs">{t.playerName}</span>
-                                                {renderBadges(t.tags, t.isPaidOff)}
-                                            </div>
-                                            <span className="font-mono text-xs font-medium text-red-400">+{formatCurrency(t.amount)}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                             ) : (
-                                <div className="text-xs text-slate-600 italic">No fines issued.</div>
-                             )}
-
-                             {onDelete && (
-                                <div className="mt-4 pt-4 border-t border-slate-800 flex justify-end">
-                                    <button 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onDelete(session.id);
-                                        }}
-                                        className="text-xs font-bold bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white px-3 py-2 rounded-lg flex items-center gap-2 border border-red-500/20 transition-all"
-                                    >
-                                        <Trash2 className="w-3 h-3" />
-                                        Delete Session Record
-                                    </button>
-                                </div>
-                             )}
-                        </div>
-                    )}
+              <div 
+                key={session.id} 
+                className="bg-emerald-50/60 rounded-xl border border-emerald-200/80 p-3.5 shadow-xs flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-emerald-100 rounded-full text-emerald-600 flex-shrink-0">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-emerald-950">
+                      <span className="font-bold">{payer}</span> paid off their debt.
+                    </div>
+                    <div className="text-[11px] text-emerald-700 font-mono">
+                      {formatDate(session.timestamp)}
+                    </div>
+                  </div>
                 </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 border border-emerald-200 uppercase tracking-wider font-mono">
+                    Settled
+                  </span>
+                  {onDelete && (
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(session.id);
+                      }}
+                      className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Delete record"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
             );
+          }
+
+          // Match Session Statement Item
+          return (
+            <div 
+              key={session.id} 
+              className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs"
+            >
+              <button 
+                onClick={() => toggleExpand(session.id)}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors text-left"
+              >
+                <div>
+                  <div className="font-bold text-slate-900 text-sm">
+                    <span className="text-slate-400 font-normal italic pr-1 font-sans">vs</span>
+                    <span>{session.opponent}</span>
+                    {session.theme && (
+                      <span className="text-[10px] font-medium bg-amber-50 text-amber-800 px-2 py-0.5 rounded-full border border-amber-200 ml-2">
+                        Theme: {session.theme}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[11px] text-slate-500 font-sans mt-0.5">
+                    {formatDate(session.timestamp)}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <div className="font-mono font-bold text-sm text-slate-900">
+                      +{formatCurrency(totalFines)}
+                    </div>
+                  </div>
+                  {isExpanded ? (
+                    <ChevronUp className="w-4 h-4 text-slate-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-slate-400" />
+                  )}
+                </div>
+              </button>
+
+              {/* Expanded Itemized Receipt */}
+              {isExpanded && (
+                <div className="bg-slate-50/70 px-4 py-3.5 border-t border-slate-100 space-y-2.5">
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-slate-400" />
+                    Player Fines Breakdown
+                  </div>
+
+                  {session.transactions.length > 0 ? (
+                    <ul className="space-y-2 divide-y divide-slate-100">
+                      {session.transactions.map((t, idx) => (
+                        <li key={`${session.id}-${t.playerId}-${idx}`} className="pt-2 first:pt-0 flex justify-between items-start text-xs">
+                          <div>
+                            <span className="font-semibold text-slate-800">{t.playerName}</span>
+                            {renderTagBadges(t)}
+                          </div>
+                          <span className="font-mono font-bold text-red-600">
+                            +{formatCurrency(t.amount)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="text-xs text-slate-400 italic">No fines issued in this match.</div>
+                  )}
+
+                  {onDelete && (
+                    <div className="pt-2 border-t border-slate-100 flex justify-end">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(session.id);
+                        }}
+                        className="text-xs font-semibold text-red-600 hover:text-white bg-red-50 hover:bg-red-600 px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-red-200 hover:border-transparent transition-all"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete Session</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
         })}
-        </div>
+      </div>
     </div>
   );
 };
